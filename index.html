@@ -56,7 +56,7 @@
             </span>
           -->
             <h1 class="text-base sm:text-lg font-black tracking-wider text-white uppercase">
-              TERRA<span class="text-[#f59e0b]">TWIN</span>
+              TERRA<span class="text-[#f59e0b]">METRIC</span>
             </h1>
           </div>
         </button>
@@ -105,12 +105,14 @@
         </nav>
 
         <!-- Exportar Dataset JSON -->
+         <!--
         <button
           @click="exportJsonDataset"
           class="hidden xl:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono font-bold bg-[#0b1120] hover:bg-slate-800 text-[#38bdf8] border border-[#38bdf8]/40 transition-colors"
         >
           <span>Exportar JSON</span>
         </button>
+      -->
       </div>
     </header>
 
@@ -269,7 +271,7 @@
               class="px-3.5 py-2 rounded-xl text-xs font-mono font-bold text-[#050811] transition-transform hover:scale-[1.02]"
               :style="{ backgroundColor: currentBody.accent }"
             >
-              Textura 8K ({{ currentBody.fileSize.split('•')[0].trim() }})
+              Ver Textura
             </a>
             <button
               @click="setTab('analogs')"
@@ -1048,9 +1050,6 @@
             accent: '#38bdf8',
             url8k: 'https://www.solarsystemscope.com/textures/download/8k_earth_daymap.jpg',
             url2k: 'https://www.solarsystemscope.com/textures/download/2k_earth_daymap.jpg',
-            resolutionLabel: '8192 × 4096 px (8K Equirectangular)',
-            fileSize: '4.8 MB • JPG 2:1',
-            missionSource: 'NASA Blue Marble / MODIS Terra',
             quickStats: [
               { label: 'Diámetro', value: '12,756 km' },
               { label: 'Densidad', value: '5.51 g/cm³' },
@@ -1084,9 +1083,6 @@
             accent: '#94a3b8',
             url8k: 'https://www.solarsystemscope.com/textures/download/8k_moon.jpg',
             url2k: 'https://www.solarsystemscope.com/textures/download/2k_moon.jpg',
-            resolutionLabel: '8192 × 4096 px (8K Equirectangular)',
-            fileSize: '5.1 MB • JPG 2:1',
-            missionSource: 'NASA LRO WAC / LOLA Elevation',
             quickStats: [
               { label: 'Diámetro', value: '3,474 km' },
               { label: 'Densidad', value: '3.34 g/cm³' },
@@ -1120,9 +1116,6 @@
             accent: '#fc3d21',
             url8k: 'https://www.solarsystemscope.com/textures/download/8k_mars.jpg',
             url2k: 'https://www.solarsystemscope.com/textures/download/2k_mars.jpg',
-            resolutionLabel: '8192 × 4096 px (8K Equirectangular)',
-            fileSize: '5.4 MB • JPG 2:1',
-            missionSource: 'NASA Viking / MGS MOLA / MRO',
             quickStats: [
               { label: 'Diámetro', value: '6,779 km' },
               { label: 'Densidad', value: '3.93 g/cm³' },
