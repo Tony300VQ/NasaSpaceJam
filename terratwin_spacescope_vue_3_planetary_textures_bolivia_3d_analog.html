@@ -1,0 +1,2941 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TerraTwin SpaceScope • Texturas Planetarias 8K & Atlas de Análogos de Bolivia 3D</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Vue 3 CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <!-- Three.js para Globos 3D y Relieve DEM Comparado -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #3c4f85;
+      color: #f1f5f9;
+      background-image:
+        radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.08) 0%, transparent 42%),
+        radial-gradient(circle at 85% 15%, rgba(252, 61, 33, 0.08) 0%, transparent 42%),
+        radial-gradient(1px 1px at 30px 40px, rgba(255, 255, 255, 0.28) 50%, transparent 100%),
+        radial-gradient(1px 1px at 140px 110px, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+      background-size: 100% 100%, 100% 100%, 190px 190px, 260px 260px;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-16 selection:bg-[#38bdf8] selection:text-[#050811]">
+  <div id="app">
+    <!-- ====================================================================
+         BARRA DE NAVEGACIÓN PRINCIPAL (ESTILO SOLAR SYSTEM SCOPE TEXTURES)
+    ===================================================================== -->
+    <header class="sticky top-0 z-50 bg-[#050811]/92 backdrop-blur-xl border-b border-slate-800/90">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+        <!-- Identidad de la Plataforma -->
+        <button @click="setTab('catalog')" class="flex items-center gap-3 text-left group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0b3d91] to-[#38bdf8]/30 border border-[#38bdf8]/60 flex items-center justify-center shadow-[0_0_20px_rgba(56,189,248,0.25)]">
+            <svg class="w-5 h-5 text-[#38bdf8] group-hover:rotate-45 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            </svg>
+          </div>
+          <div>
+            <!--
+            <span class="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-[#38bdf8] block">
+              SOLAR SYSTEM TEXTURES & NASA ANALOG LAB
+            </span>
+          -->
+            <h1 class="text-base sm:text-lg font-black tracking-wider text-white uppercase">
+              TERRA<span class="text-[#f59e0b]">TWIN</span>
+            </h1>
+          </div>
+        </button>
+
+        <!-- Pestañas de Navegación -->
+        <nav class="flex flex-wrap items-center gap-1.5 bg-[#0b1120] p-1.5 rounded-2xl border border-slate-800">
+          <button
+            @click="setTab('catalog')"
+            :class="activeTab === 'catalog' ? 'bg-[#38bdf8] text-[#050811] shadow-[0_0_15px_rgba(56,189,248,0.4)]' : 'text-slate-300 hover:text-white'"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
+          >
+            Texturas 8K
+          </button>
+
+          <button
+            @click="setTab('earth')"
+            :class="activeTab === 'earth' ? 'bg-[#0b3d91] text-white border border-[#38bdf8]' : 'text-slate-300 hover:text-white'"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
+          >
+            La Tierra
+          </button>
+
+          <button
+            @click="setTab('moon')"
+            :class="activeTab === 'moon' ? 'bg-slate-200 text-[#050811]' : 'text-slate-300 hover:text-white'"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
+          >
+            La Luna
+          </button>
+
+          <button
+            @click="setTab('mars')"
+            :class="activeTab === 'mars' ? 'bg-[#fc3d21] text-white shadow-[0_0_15px_rgba(252,61,33,0.4)]' : 'text-slate-300 hover:text-white'"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
+          >
+            Marte
+          </button>
+
+          <button
+            @click="setTab('analogs')"
+            :class="activeTab === 'analogs' ? 'bg-[#f59e0b] text-[#050811] shadow-[0_0_15px_rgba(245,158,11,0.4)]' : 'text-slate-300 hover:text-white'"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
+          >
+            Comparación & Atlas 3D
+          </button>
+        </nav>
+
+        <!-- Exportar Dataset JSON -->
+        <button
+          @click="exportJsonDataset"
+          class="hidden xl:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-mono font-bold bg-[#0b1120] hover:bg-slate-800 text-[#38bdf8] border border-[#38bdf8]/40 transition-colors"
+        >
+          <span>Exportar JSON</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ====================================================================
+         CONTENIDO PRINCIPAL
+    ===================================================================== -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
+      <!-- ==================================================================
+           VISTA 1: CATÁLOGO DE TEXTURAS EQUIRECTANGULARES 8K / 2K
+      =================================================================== -->
+  
+      <div v-if="activeTab === 'catalog'" class="space-y-8">
+        <section class="bg-[#0b1120]/90 border border-slate-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+          <div class="max-w-3xl space-y-3 relative z-10">
+            <!--
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-[#38bdf8]/15 text-[#38bdf8] border border-[#38bdf8]/30">
+              SOLAR SYSTEM SCOPE TEXTURES • NASA OPEN DATA ANALOGS
+            </span>
+
+          -->
+            <h2 class="text-2xl sm:text-4xl font-black text-white tracking-tight uppercase">
+              Analogic
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <strong class="text-[#38bdf8]">La Tierra</strong>, <strong class="text-slate-200">La Luna</strong> y <strong class="text-[#fc3d21]">Marte</strong>, inspeccionamos su estructura interna y comparamos en tiempo real el relieve 3D frente a sitios de aterrizaje espacial.
+            </p>
+          </div>
+        </section>
+
+
+        <!-- Tarjetas de Texturas (Tierra, Luna, Marte) -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <article
+            v-for="body in bodiesList"
+            :key="body.id"
+            class="bg-[#0b1120] border border-slate-800 hover:border-slate-500 rounded-2xl overflow-hidden flex flex-col justify-between transition-all group shadow-xl hover:-translate-y-1"
+          >
+            <div>
+              <div @click="setTab(body.id)" class="relative h-48 w-full bg-[#050811] overflow-hidden cursor-pointer">
+                <img
+                  :src="body.url2k"
+                  :alt="'Textura equirectangular de ' + body.name"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-[#0b1120] via-transparent to-black/30"></div>
+
+                <span
+                  class="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold backdrop-blur-md border"
+                  :style="{ backgroundColor: 'rgba(5, 8, 17, 0.85)', color: body.accent, borderColor: body.accent + '66' }"
+                >
+                  {{ body.resolutionLabel }}
+                </span>
+
+                <div class="absolute bottom-3 left-4 right-4 flex items-end justify-between">
+                  <div>
+                    <span class="text-[10px] font-mono text-slate-300 block">{{ body.missionSource }}</span>
+                    <h3 class="text-xl font-black text-white tracking-wide">{{ body.name }}</h3>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-lg bg-[#050811]/90 text-[11px] font-mono text-slate-200 border border-slate-700">
+                    {{ body.fileSize }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="p-5 space-y-4">
+                <p class="text-xs text-slate-300 leading-relaxed">{{ body.summary }}</p>
+                <div class="grid grid-cols-2 gap-2">
+                  <div v-for="st in body.quickStats" :key="st.label" class="bg-[#050811] border border-slate-800/90 rounded-lg px-2.5 py-2">
+                    <span class="text-[10px] font-mono text-slate-400 block">{{ st.label }}</span>
+                    <span class="text-xs font-bold font-mono text-white">{{ st.value }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-5 pt-0 space-y-2.5">
+              <button
+                @click="setTab(body.id)"
+                class="w-full py-2.5 px-4 rounded-xl text-xs font-black uppercase tracking-wider text-[#050811] transition-transform hover:scale-[1.01]"
+                :style="{ backgroundColor: body.accent }"
+              >
+                Explorar Estructura y Esfera 3D
+              </button>
+
+              <button
+                v-if="body.id !== 'earth'"
+                @click="jumpToComparisonTarget(body.id)"
+                class="w-full py-2 px-4 rounded-xl text-xs font-bold bg-[#050811] hover:bg-slate-800 text-white border border-slate-700 transition-colors"
+              >
+                Comparar {{ body.name }} con Bolivia 3D →
+              </button>
+
+              <div class="grid grid-cols-2 gap-2">
+                <a
+                  :href="body.url2k"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="py-2 px-3 rounded-xl text-[11px] font-mono font-bold text-center bg-[#050811] hover:bg-slate-800 text-slate-200 border border-slate-800"
+                >
+                  VISUALIZAR EN 2K
+                </a>
+                <a
+                  :href="body.url8k"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="py-2 px-3 rounded-xl text-[11px] font-mono font-bold text-center bg-[#050811] hover:bg-slate-800 text-slate-200 border border-slate-800"
+                >
+                  VISUALIZAR EN 8K
+                </a>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <!-- Banner de Acceso Directo al Atlas de Análogos 3D -->
+        <section class="bg-gradient-to-r from-[#0b1120] via-[#0f172a] to-[#0b1120] border border-[#f59e0b]/40 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div class="space-y-1 text-center md:text-left">
+            <span class="text-[11px] font-mono font-bold uppercase tracking-widest text-[#f59e0b]">
+              ATLAS DE ANÁLOGOS DE BOLIVIA 3D • TELEMETRÍA NASA EN VIVO
+            </span>
+            <h3 class="text-lg sm:text-xl font-black text-white">
+              Comparación Interactiva: Bolivia vs. La Luna y Marte
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-300">
+              Globos 3D sincronizados, parches topográficos de 20 km (SRTM / MOLA / LOLA), ciclo térmico día-noche, caída libre de gravedad y comparación visual en tiempo real.
+            </p>
+          </div>
+          <button
+            @click="setTab('analogs')"
+            class="px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-[#f59e0b] hover:bg-amber-400 text-[#050811] shrink-0 shadow-[0_0_20px_rgba(245,158,11,0.35)]"
+          >
+            Abrir Comparador 3D →
+          </button>
+        </section>
+      </div>
+
+      <!-- ==================================================================
+           VISTAS 2, 3 y 4: ESTRUCTURA INTERNA Y SUELO DE TIERRA, LUNA O MARTE
+      =================================================================== -->
+      <div v-if="isPlanetTab && currentBody" class="space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-[#0b1120] border border-slate-800 rounded-2xl p-4">
+          <div>
+            <span class="text-[11px] font-mono font-bold uppercase tracking-widest block" :style="{ color: currentBody.accent }">
+              {{ currentBody.subtitle }}
+            </span>
+            <h2 class="text-xl sm:text-2xl font-black text-white tracking-wide">
+              ESTRUCTURA INTERNA Y SUELO DE {{ currentBody.name }}
+            </h2>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <a
+              :href="currentBody.url8k"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="px-3.5 py-2 rounded-xl text-xs font-mono font-bold text-[#050811] transition-transform hover:scale-[1.02]"
+              :style="{ backgroundColor: currentBody.accent }"
+            >
+              Textura 8K ({{ currentBody.fileSize.split('•')[0].trim() }})
+            </a>
+            <button
+              @click="setTab('analogs')"
+              class="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#050811] text-white border border-slate-700 hover:border-[#38bdf8]"
+            >
+              Comparar con Bolivia 3D
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- Columna Izquierda: Esfera 3D Interactiva + Mapa 2:1 -->
+          <div class="lg:col-span-5 space-y-4">
+            <div class="bg-[#080d1a] border border-slate-800 rounded-2xl p-4 flex flex-col items-center space-y-3">
+              <div class="w-full flex items-center justify-between text-[11px] font-mono">
+                <span class="font-bold" :style="{ color: currentBody.accent }">ESFERA 3D INTERACTIVA</span>
+                <span class="text-slate-400">Arrastra para rotar 360°</span>
+              </div>
+
+              <div
+                class="relative w-64 h-64 sm:w-72 sm:h-72 rounded-2xl bg-[#02040a] border border-slate-800/80 flex items-center justify-center cursor-grab active:cursor-grabbing select-none overflow-hidden shadow-inner"
+                @mousedown="onSpherePointerDown"
+                @mousemove="onSpherePointerMove"
+                @mouseup="onSpherePointerUp"
+                @mouseleave="onSpherePointerUp"
+                @touchstart.passive="onSpherePointerDown"
+                @touchmove.passive="onSpherePointerMove"
+                @touchend="onSpherePointerUp"
+              >
+                <div class="absolute inset-6 rounded-full blur-2xl opacity-30 pointer-events-none" :style="{ backgroundColor: currentBody.accent }"></div>
+                <canvas ref="sphereCanvas" width="300" height="300" class="w-full h-full relative z-10"></canvas>
+              </div>
+
+              <div class="w-full space-y-2.5 pt-2 border-t border-slate-800/80">
+                <div class="flex items-center justify-between gap-2 text-xs">
+                  <span class="text-slate-400 font-mono">Ángulo Solar</span>
+                  <input type="range" min="-1.2" max="2.6" step="0.05" v-model.number="sunAngle" class="w-32 accent-[#38bdf8]" />
+                  <button
+                    @click="autoSpin = !autoSpin"
+                    :class="autoSpin ? 'bg-[#38bdf8]/15 border-[#38bdf8]/50 text-[#38bdf8]' : 'bg-[#050811] border-slate-800 text-slate-400'"
+                    class="px-2.5 py-1 rounded-lg font-mono text-[11px] border"
+                  >
+                    {{ autoSpin ? 'Rotación ON' : 'Pausado' }}
+                  </button>
+                </div>
+                <div class="flex items-center justify-between text-[10px] font-mono text-slate-400">
+                  <span>{{ sphereStatusText }}</span>
+                  <a :href="currentBody.url8k" target="_blank" rel="noopener noreferrer" class="text-[#38bdf8] hover:underline">
+                    Abrir 8K JPG ↗
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mapa Equirectangular Plano -->
+            <div class="bg-[#0b1120] border border-slate-800 rounded-2xl p-4 space-y-2.5">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-mono font-bold text-slate-200">MAPA EQUIRECTANGULAR 2:1</span>
+                <span class="font-mono text-[11px] text-slate-400">{{ currentBody.missionSource }}</span>
+              </div>
+              <div class="relative h-32 w-full rounded-xl overflow-hidden border border-slate-700 bg-[#050811]">
+                <img :src="currentBody.url2k" :alt="'Textura ' + currentBody.name" class="w-full h-full object-cover" />
+                <div class="absolute bottom-2 right-2 bg-[#050811]/85 backdrop-blur px-2 py-0.5 rounded text-[10px] font-mono text-slate-300 border border-slate-700">
+                  {{ currentBody.resolutionLabel }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna Derecha: Corte Geológico Profundo + Perfil del Suelo -->
+          <div class="lg:col-span-7 space-y-5">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div v-for="st in currentBody.quickStats" :key="st.label" class="bg-[#0b1120] border border-slate-800 rounded-xl p-3">
+                <span class="text-[10px] font-mono uppercase text-slate-400 block">{{ st.label }}</span>
+                <span class="text-sm sm:text-base font-black font-mono text-white mt-0.5 block">{{ st.value }}</span>
+              </div>
+            </div>
+
+            <!-- Corte Geológico Profundo -->
+            <div class="bg-[#0b1120] border border-slate-800 rounded-2xl p-5 space-y-4">
+              <div>
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider block" :style="{ color: currentBody.accent }">
+                  CORTE GEOLÓGICO PROFUNDO
+                </span>
+                <h3 class="text-base sm:text-lg font-bold text-white">
+                  Capas Internas de {{ currentBody.name }} (Haz clic en cada capa)
+                </h3>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                <div class="md:col-span-5 flex items-center justify-center">
+                  <svg viewBox="0 0 220 220" class="w-48 h-48 sm:w-52 sm:h-52">
+                    <g v-for="(layer, idx) in currentBody.internalLayers" :key="layer.name" @click="selectedLayerIndex = idx" class="cursor-pointer">
+                      <circle
+                        cx="110"
+                        cy="110"
+                        :r="(layer.radiusPct / 100) * 96"
+                        :fill="layer.color"
+                        :fill-opacity="selectedLayerIndex === idx ? 0.55 : 0.24"
+                        :stroke="selectedLayerIndex === idx ? '#ffffff' : layer.color"
+                        :stroke-width="selectedLayerIndex === idx ? 2.5 : 1.2"
+                      />
+                    </g>
+                    <text x="110" y="215" text-anchor="middle" fill="#94a3b8" font-size="9" font-family="monospace">
+                      SELECCIONA UNA CAPA RADIAL
+                    </text>
+                  </svg>
+                </div>
+
+                <div class="md:col-span-7 space-y-2">
+                  <button
+                    v-for="(layer, idx) in currentBody.internalLayers"
+                    :key="layer.name"
+                    @click="selectedLayerIndex = idx"
+                    :class="selectedLayerIndex === idx ? 'bg-[#050811] border-white shadow-lg' : 'bg-[#050811]/60 border-slate-800 hover:border-slate-600'"
+                    class="w-full text-left p-3 rounded-xl border transition-all"
+                  >
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="text-xs font-bold text-white flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="{ backgroundColor: layer.color }"></span>
+                        {{ layer.name }}
+                      </span>
+                      <span class="text-[11px] font-mono text-slate-400">{{ layer.depth }}</span>
+                    </div>
+                    <div v-if="selectedLayerIndex === idx" class="mt-2 pt-2 border-t border-slate-800 text-xs text-slate-300 space-y-1">
+                      <p>{{ layer.composition }}</p>
+                      <p class="font-mono text-[11px] text-[#f59e0b]">Temperatura estimada: {{ layer.temp }}</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Perfil del Suelo / Regolito -->
+            <div class="bg-[#0b1120] border border-slate-800 rounded-2xl p-5 space-y-4">
+              <div>
+                <span class="text-[11px] font-mono font-bold uppercase tracking-wider block" :style="{ color: currentBody.accent }">
+                  PERFIL EDÁFICO Y REGOLITO SUPERFICIAL
+                </span>
+                <h3 class="text-base sm:text-lg font-bold text-white">
+                  Estructura de la Tierra / Suelo de {{ currentBody.name }}
+                </h3>
+              </div>
+
+              <div class="space-y-3">
+                <div
+                  v-for="(horizon, i) in currentBody.soilStructure"
+                  :key="horizon.horizon"
+                  class="bg-[#050811] border border-slate-800 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-start gap-3"
+                >
+                  <div
+                    class="px-2.5 py-1 rounded-lg font-mono text-xs font-bold shrink-0 text-center"
+                    :style="{ backgroundColor: currentBody.accent + '20', color: currentBody.accent, border: '1px solid ' + currentBody.accent + '55' }"
+                  >
+                    CAPA 0{{ i + 1 }} • {{ horizon.thickness }}
+                  </div>
+                  <div class="space-y-1">
+                    <h4 class="text-xs sm:text-sm font-bold text-white">{{ horizon.horizon }}</h4>
+                    <p class="text-xs text-slate-300 leading-relaxed">{{ horizon.details }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+                <div
+                  v-for="spec in currentBody.geophysicalSpecs"
+                  :key="spec.param"
+                  class="bg-[#050811]/80 border border-slate-800/80 rounded-lg px-3 py-2 flex items-center justify-between gap-2 text-xs"
+                >
+                  <span class="text-slate-400">{{ spec.param }}:</span>
+                  <span class="font-mono font-bold text-slate-100 text-right">{{ spec.val }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================================================================
+           VISTA 5: COMPARACIÓN DE TIERRAS ANÁLOGAS & ATLAS DE BOLIVIA 3D
+      =================================================================== -->
+      <div v-if="activeTab === 'analogs'" class="space-y-6">
+        <!-- Escenario Dual 3D de Mundos (Tierra: Bolivia vs Marte / Luna) -->
+        <div class="bg-[#0b1120] border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <span class="text-[11px] font-mono font-bold uppercase tracking-widest text-[#38bdf8] block">
+                COMPARACIÓN ORBITAL 3D INTERACTIVA • TIERRA (BOLIVIA) ↔ {{ globeTarget === 'mars' ? 'MARTE' : 'LA LUNA' }}
+              </span>
+              <h2 class="text-lg sm:text-xl font-black text-white">
+                Globos 3D Sincronizados: Toca un marcador amarillo sobre Bolivia
+              </h2>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                @click="setGlobeTarget('mars')"
+                :class="globeTarget === 'mars' ? 'bg-[#fc3d21] text-white border-[#fc3d21]' : 'bg-[#050811] text-slate-300 border-slate-700'"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all"
+              >
+                Comparar con Marte
+              </button>
+              <button
+                @click="setGlobeTarget('moon')"
+                :class="globeTarget === 'moon' ? 'bg-slate-200 text-[#050811] border-white' : 'bg-[#050811] text-slate-300 border-slate-700'"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all"
+              >
+                Comparar con La Luna
+              </button>
+              <button
+                @click="toggleRealScale"
+                :class="globeRealScale ? 'bg-[#38bdf8] text-[#050811] border-[#38bdf8]' : 'bg-[#050811] text-slate-300 border-slate-700'"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold border transition-all"
+              >
+                {{ globeRealScale ? 'Tamaño Real: ON' : 'Tamaño Real: OFF' }}
+              </button>
+              <button
+                @click="globeAutoRotate = !globeAutoRotate"
+                :class="globeAutoRotate ? 'bg-[#38bdf8]/15 text-[#38bdf8] border-[#38bdf8]/50' : 'bg-[#050811] text-slate-400 border-slate-700'"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold border transition-all"
+              >
+                {{ globeAutoRotate ? 'Rotación: ON' : 'Rotación: OFF' }}
+              </button>
+            </div>
+          </div>
+
+          <div ref="dualGlobeStage" class="relative h-80 sm:h-[430px] w-full rounded-2xl overflow-hidden border border-slate-800 bg-[#050811] touch-none cursor-grab active:cursor-grabbing">
+            <span class="absolute top-3 left-3 z-10 text-xs font-mono font-bold text-slate-100 bg-black/70 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#38bdf8]/50 pointer-events-none shadow-lg">
+              Tierra: {{ currentBoliviaSite.n }} ({{ currentBoliviaSite.ll[0] }}°, {{ currentBoliviaSite.ll[1] }}°)
+            </span>
+            <span class="absolute top-3 right-3 z-10 text-xs font-mono font-bold text-slate-100 bg-black/70 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-[#f59e0b]/50 pointer-events-none shadow-lg">
+              {{ globeTarget === 'mars' ? 'Marte' : 'Luna' }}: {{ currentBoliviaRef[0] }}
+            </span>
+
+            <!-- Tooltip interactivo al pasar el cursor sobre marcadores 3D -->
+            <div
+              v-if="hoveredGlobeMarker"
+              class="fixed z-50 pointer-events-none px-3 py-1.5 rounded-xl bg-[#050811]/95 border border-[#38bdf8] text-xs font-mono text-white shadow-xl"
+              :style="{ left: hoveredGlobeMarker.x + 14 + 'px', top: hoveredGlobeMarker.y - 12 + 'px' }"
+            >
+              <span class="text-[#38bdf8] font-bold block">{{ hoveredGlobeMarker.body }}</span>
+              <span>{{ hoveredGlobeMarker.name }}</span>
+            </div>
+
+            <!-- Botones rápidos de enfoque de cámara sobre los mundos -->
+            <div class="absolute bottom-11 left-3 right-3 flex flex-wrap items-center justify-center gap-2 z-10">
+              <button
+                @click="refocusDualGlobes"
+                class="px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-[#0b1120]/90 hover:bg-[#38bdf8] text-slate-200 hover:text-[#050811] border border-slate-700 transition-colors"
+              >
+                Centrar Coordenadas Activas
+              </button>
+              <button
+                @click="globeCloudsVisible = !globeCloudsVisible"
+                class="px-3 py-1 rounded-full text-[11px] font-mono font-bold bg-[#0b1120]/90 text-slate-200 border border-slate-700 hover:border-[#38bdf8] transition-colors"
+              >
+                {{ globeCloudsVisible ? 'Ocultar Nubes Tierra' : 'Mostrar Nubes Tierra' }}
+              </button>
+            </div>
+
+            <span class="absolute bottom-2.5 left-3 right-3 text-center z-10 text-[11px] font-mono text-slate-300 bg-black/65 backdrop-blur-sm py-1 px-3 rounded-full pointer-events-none">
+              Arrastra cada planeta por separado para girarlo • Haz clic en cualquier punto amarillo (Tierra o {{ globeTarget === 'mars' ? 'Marte' : 'Luna' }})
+            </span>
+          </div>
+        </div>
+
+        <!-- =================================================================
+             MÓDULO UNIFICADO: ATLAS DE ANÁLOGOS DE BOLIVIA 3D (RELIEVE DEM, CICLO TÉRMICO, GRAVEDAD Y RADAR)
+        ================================================================== -->
+        <div class="bg-[#0b1120] border border-[#f59e0b]/40 rounded-2xl p-5 space-y-5 shadow-2xl">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+            <div>
+              <span class="text-[11px] font-mono font-bold uppercase tracking-widest text-[#f59e0b] block">
+                LABORATORIO GEOMORFOLÓGICO Y TÉRMICO 3D • DATOS REALES SRTM / MOLA / LOLA / NASA POWER
+              </span>
+              <h3 class="text-lg sm:text-xl font-black text-white">
+                Atlas de Análogos de Bolivia 3D: Relieve Comparado, Ciclo Térmico y Gravedad
+              </h3>
+            </div>
+
+            <!-- Selector de Misión Aeroespacial -->
+            <div class="flex flex-wrap items-center gap-1.5 bg-[#050811] p-1.5 rounded-xl border border-slate-800">
+              <button
+                v-for="mKey in Object.keys(boliviaMissions)"
+                :key="mKey"
+                @click="setAtlasMission(mKey)"
+                :class="atlasMission === mKey ? 'bg-[#f59e0b] text-[#050811]' : 'text-slate-300 hover:text-white'"
+                class="px-3 py-1 rounded-lg text-xs font-bold transition-colors"
+              >
+                {{ mKey }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Selector rápido de los 7 sitios análogos de Bolivia -->
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="(site, idx) in boliviaSites"
+              :key="site.id"
+              @click="selectBoliviaSite(idx)"
+              :class="boliviaSiteIdx === idx ? 'bg-[#38bdf8] text-[#050811] border-[#38bdf8]' : 'bg-[#050811] text-slate-300 border-slate-800 hover:border-slate-600'"
+              class="px-3 py-1.5 rounded-xl text-xs font-bold border transition-all"
+            >
+              {{ site.n }}
+            </button>
+          </div>
+
+          <!-- 1. Relieve 3D Comparado con Elevaciones Reales (Parches 20 km) -->
+          <div class="bg-[#050811] border border-slate-800 rounded-2xl p-4 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h4 class="text-sm font-bold text-white">
+                Relieve Comparado 3D (20 km): <span class="text-[#38bdf8]">{{ currentBoliviaSite.n }}</span> vs. <span class="text-[#f59e0b]">{{ currentBoliviaRef[0] }}</span>
+              </h4>
+              <span class="text-[11px] font-mono text-slate-400">Arrastra el terreno para rotar</span>
+            </div>
+
+            <!-- Controles de Exageración Vertical, Sol, Hora Local y Caída Libre -->
+            <div class="flex flex-wrap items-center gap-3 text-xs bg-[#0b1120] p-3 rounded-xl border border-slate-800/80">
+              <label class="flex items-center gap-1.5 text-slate-300 font-mono">
+                <span>Exageración:</span>
+                <input type="range" min="1" max="6" step="1" v-model.number="terrainVex" @input="rebuildTerrainPatches" class="w-20 accent-[#38bdf8]" />
+                <span class="text-[#38bdf8] font-bold">{{ terrainVex }}x</span>
+              </label>
+
+              <label class="flex items-center gap-1.5 text-slate-300 font-mono">
+                <span>Sol máx:</span>
+                <input type="range" min="5" max="80" step="1" v-model.number="terrainSunEl" class="w-20 accent-[#f59e0b]" />
+                <span class="text-[#f59e0b] font-bold">{{ terrainSunEl }}°</span>
+              </label>
+
+              <button
+                @click="toggleTerrainClock"
+                class="px-2.5 py-1 rounded-lg bg-[#050811] border border-slate-700 text-slate-200 font-mono hover:border-[#38bdf8]"
+              >
+                {{ terrainPlaying ? 'Pausar día' : 'Reproducir día' }}
+              </button>
+
+              <label class="flex items-center gap-1.5 text-slate-300 font-mono">
+                <span>Hora:</span>
+                <input type="range" min="0" max="1000" v-model.number="terrainClockRaw" @input="onManualClockInput" class="w-24 accent-[#38bdf8]" />
+                <span class="text-white font-bold">{{ terrainClockLabel }}</span>
+              </label>
+
+              <select v-model.number="terrainDaySpeed" class="bg-[#050811] text-slate-200 border border-slate-700 rounded-lg px-2 py-1 font-mono text-[11px]">
+                <option :value="60">Lento (60 s)</option>
+                <option :value="30">Normal (30 s)</option>
+                <option :value="10">Rápido (10 s)</option>
+              </select>
+
+              <button
+                @click="triggerGravityDrop"
+                class="px-3 py-1 rounded-lg bg-[#fc3d21] text-white font-bold hover:bg-orange-600 transition-colors"
+              >
+                Soltar objeto desde 100 m
+              </button>
+            </div>
+
+            <div v-if="terrainClockTempText || gravityDropInfo" class="flex flex-wrap items-center justify-between gap-2 text-xs font-mono px-2">
+              <span class="text-[#38bdf8]">{{ terrainClockTempText }}</span>
+              <span v-if="gravityDropInfo" class="text-[#f59e0b] font-bold">{{ gravityDropInfo }}</span>
+            </div>
+
+            <!-- Canvas Three.js de Terrenos 3D -->
+            <div ref="terrainStageRef" class="h-64 sm:h-72 w-full rounded-xl overflow-hidden bg-[#060913] border border-slate-800 touch-none"></div>
+
+            <!-- Tabla de Métricas Topográficas Reales -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs font-mono border-collapse">
+                <thead>
+                  <tr class="border-b border-slate-800 text-slate-400">
+                    <th class="py-1.5 px-2 text-left">Parámetro Topográfico (20 km)</th>
+                    <th class="py-1.5 px-2 text-right text-[#38bdf8]">{{ currentBoliviaSite.n }}</th>
+                    <th class="py-1.5 px-2 text-right text-[#f59e0b]">{{ currentBoliviaRef[0] }}</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/60 text-slate-200">
+                  <tr>
+                    <td class="py-1.5 px-2">Altitud media</td>
+                    <td class="py-1.5 px-2 text-right">{{ terrainStatsTable.altA }}</td>
+                    <td class="py-1.5 px-2 text-right">{{ terrainStatsTable.altB }}</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-2">Relieve en 20 km</td>
+                    <td class="py-1.5 px-2 text-right">{{ terrainStatsTable.relA }}</td>
+                    <td class="py-1.5 px-2 text-right">{{ terrainStatsTable.relB }}</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-2">Pendiente RMS</td>
+                    <td class="py-1.5 px-2 text-right font-bold">{{ terrainStatsTable.rmsA }}</td>
+                    <td class="py-1.5 px-2 text-right font-bold">{{ terrainStatsTable.rmsB }}</td>
+                  </tr>
+                  <tr>
+                    <td class="py-1.5 px-2">Pendiente p95</td>
+                    <td class="py-1.5 px-2 text-right">{{ terrainStatsTable.p95A }}</td>
+                    <td class="py-1.5 px-2 text-right">{{ terrainStatsTable.p95B }}</td>
+                  </tr>
+                  <tr class="bg-[#0b1120]">
+                    <td class="py-1.5 px-2 font-bold text-white">Similitud de pendiente</td>
+                    <td colspan="2" class="py-1.5 px-2 text-right font-black text-[#10b981]">{{ terrainStatsTable.sim }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="text-[11px] text-slate-400">{{ terrainStatsTable.note }}</p>
+          </div>
+
+          <!-- 2. Ciclo Térmico Típico Día-Noche (NASA POWER vs Literatura Planetaria) -->
+          <div class="bg-[#050811] border border-slate-800 rounded-2xl p-4 space-y-3">
+            <h4 class="text-sm font-bold text-white">
+              Ciclo Térmico Típico Día-Noche: <span class="text-[#38bdf8]">{{ currentBoliviaSite.n }}</span> vs. <span class="text-[#fc3d21]">{{ currentBoliviaRef[0] }}</span>
+            </h4>
+            <div ref="tempChartSvgRef" class="w-full"></div>
+            <p class="text-xs text-slate-300 leading-relaxed" v-html="tempChartSummaryHtml"></p>
+          </div>
+
+          <!-- 3. Ranking de Sitios para la Misión + Radar Heptagonal de Similitud -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="bg-[#050811] border border-slate-800 rounded-2xl p-4 space-y-3">
+              <h4 class="text-sm font-bold text-white">
+                Ranking de Sitios Bolivianos para Misión: <span class="text-[#f59e0b]">{{ atlasMission }}</span>
+              </h4>
+              <div class="divide-y divide-slate-800">
+                <button
+                  v-for="item in boliviaRanking"
+                  :key="item.idx"
+                  @click="selectBoliviaSite(item.idx)"
+                  :class="item.idx === boliviaSiteIdx ? 'bg-[#0b1120] font-bold text-white' : 'text-slate-300 hover:bg-[#0b1120]/50'"
+                  class="w-full py-2 px-2.5 flex items-center gap-3 text-left text-xs transition-colors rounded-lg"
+                >
+                  <span class="w-44 truncate">{{ item.site.n }}</span>
+                  <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      class="h-full rounded-full transition-all duration-500"
+                      :style="{ width: `${item.score * 10}%`, backgroundColor: globeTarget === 'mars' ? '#fc3d21' : '#94a3b8' }"
+                    ></div>
+                  </div>
+                  <span class="font-mono font-bold w-8 text-right">{{ item.score.toFixed(1) }}</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-[#050811] border border-slate-800 rounded-2xl p-4 space-y-2">
+              <h4 class="text-sm font-bold text-white">
+                Radar de Similitud con {{ globeTarget === 'mars' ? 'Marte' : 'la Luna' }} (7 Dimensiones)
+              </h4>
+              <div ref="radarSvgRef" class="max-w-xs mx-auto"></div>
+            </div>
+          </div>
+
+          <!-- 4. Ficha Descriptiva del Sitio + Dónde Falla la Analogía (Rigor Científico) -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="bg-[#050811] border border-slate-800 rounded-2xl p-4 space-y-2">
+              <h4 class="text-sm font-black text-[#38bdf8]">{{ currentBoliviaSite.n }}</h4>
+              <p class="text-xs text-slate-200 leading-relaxed">{{ currentBoliviaSite.d }}</p>
+              <p class="text-[11px] font-mono text-slate-400 pt-1 border-t border-slate-800">{{ currentBoliviaSite.f }}</p>
+            </div>
+
+            <div class="bg-[#050811] border border-slate-800 border-l-4 border-l-[#fc3d21] rounded-2xl p-4 space-y-2">
+              <h4 class="text-sm font-black text-[#fc3d21]">Dónde falla la analogía (Limitaciones Físicas)</h4>
+              <ul class="list-disc pl-4 space-y-1 text-xs text-slate-300">
+                <li v-for="(gap, gIdx) in boliviaGaps[globeTarget]" :key="gIdx">{{ gap }}</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- =================================================================
+             SIMULADOR INTERACTIVO DE VIABILIDAD DE MISIÓN (INGENIERÍA ISRU & ATERRIZAJE)
+        ================================================================== -->
+        <div class="bg-[#0b1120] border border-[#38bdf8]/40 rounded-2xl p-5 space-y-4 shadow-xl">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div>
+              <span class="text-[11px] font-mono font-bold uppercase tracking-widest text-[#38bdf8] block">
+                SIMULADOR DE INGENIERÍA AEROESPACIAL • PARÁMETROS CONFIGURABLES POR EL USUARIO
+              </span>
+              <h3 class="text-lg font-black text-white">
+                Evaluador Interactivo de Aterrizaje y Construcción de Base Permanente
+              </h3>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#38bdf8]/15 text-[#38bdf8] border border-[#38bdf8]/30">
+              Sitio activo: {{ currentBoliviaSite.n }}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+            <!-- Controles deslizantes del usuario -->
+            <div class="lg:col-span-6 space-y-3 bg-[#050811] p-4 rounded-xl border border-slate-800">
+              <div class="space-y-1">
+                <div class="flex justify-between text-xs font-mono">
+                  <span class="text-slate-300">Pendiente máxima tolerada por el módulo:</span>
+                  <span class="text-[#38bdf8] font-bold">{{ simMaxSlope }}°</span>
+                </div>
+                <input type="range" min="1" max="20" step="0.5" v-model.number="simMaxSlope" class="w-full accent-[#38bdf8]" />
+              </div>
+
+              <div class="space-y-1">
+                <div class="flex justify-between text-xs font-mono">
+                  <span class="text-slate-300">Porosidad mínima para sinterización 3D (ISRU):</span>
+                  <span class="text-[#f59e0b] font-bold">{{ simMinPorosity }}%</span>
+                </div>
+                <input type="range" min="25" max="50" step="1" v-model.number="simMinPorosity" class="w-full accent-[#f59e0b]" />
+              </div>
+
+              <div class="space-y-1">
+                <div class="flex justify-between text-xs font-mono">
+                  <span class="text-slate-300">Exigencia de protección / prueba radiación UV:</span>
+                  <span class="text-[#fc3d21] font-bold">{{ simMinUv }} UV</span>
+                </div>
+                <input type="range" min="8" max="18" step="0.5" v-model.number="simMinUv" class="w-full accent-[#fc3d21]" />
+              </div>
+            </div>
+
+            <!-- Dictamen Dinámico en Tiempo Real -->
+            <div class="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div
+                :class="missionEngineeringEval.landingOk ? 'bg-[#10B981]/10 border-[#10B981]/50' : 'bg-[#fc3d21]/10 border-[#fc3d21]/50'"
+                class="p-4 rounded-xl border space-y-1.5"
+              >
+                <span class="text-[10px] font-mono font-bold uppercase block" :class="missionEngineeringEval.landingOk ? 'text-[#10B981]' : 'text-[#fc3d21]'">
+                  DICTAMEN DE ATERRIZAJE VERTICAL
+                </span>
+                <h4 class="text-sm font-black text-white">
+                  {{ missionEngineeringEval.landingOk ? 'APTO PARA DESCENSO' : 'RIESGO DE VOLCADURA' }}
+                </h4>
+                <p class="text-xs text-slate-300">{{ missionEngineeringEval.landingReason }}</p>
+              </div>
+
+              <div
+                :class="missionEngineeringEval.baseOk ? 'bg-[#38BDF8]/10 border-[#38BDF8]/50' : 'bg-amber-500/10 border-amber-500/50'"
+                class="p-4 rounded-xl border space-y-1.5"
+              >
+                <span class="text-[10px] font-mono font-bold uppercase block" :class="missionEngineeringEval.baseOk ? 'text-[#38BDF8]' : 'text-amber-400'">
+                  DICTAMEN BASE PERMANENTE / ISRU
+                </span>
+                <h4 class="text-sm font-black text-white">
+                  {{ missionEngineeringEval.baseOk ? 'VIABLE PARA HÁBITAT 3D' : 'REQUIERE PRE-PROCESADO' }}
+                </h4>
+                <p class="text-xs text-slate-300">{{ missionEngineeringEval.baseReason }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =================================================================
+             TELEMETRÍA SATELITAL EN TIEMPO REAL & VISOR VISUAL LADO A LADO
+        ================================================================== -->
+        <div class="bg-[#0b1120] border border-slate-800 rounded-2xl p-5 space-y-5 shadow-xl">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <div>
+              <span class="text-[11px] font-mono font-bold uppercase tracking-widest text-[#10b981] block">
+                CONEXIÓN EN VIVO • NASA POWER API & SOILGRIDS ISRIC
+              </span>
+              <h3 class="text-lg font-black text-white">
+                Comparación de Suelo en Tiempo Real & Imágenes Orbitales
+              </h3>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-xs font-mono">
+              <label class="flex items-center gap-1 bg-[#050811] px-2.5 py-1.5 rounded-xl border border-slate-800">
+                <span class="text-slate-400">LAT:</span>
+                <input type="number" step="0.01" v-model.number="customLat" class="w-16 bg-transparent text-white font-bold focus:outline-none" />
+              </label>
+              <label class="flex items-center gap-1 bg-[#050811] px-2.5 py-1.5 rounded-xl border border-slate-800">
+                <span class="text-slate-400">LON:</span>
+                <input type="number" step="0.01" v-model.number="customLon" class="w-16 bg-transparent text-white font-bold focus:outline-none" />
+              </label>
+              <button
+                @click="runCustomCoordinateScan"
+                class="px-3 py-1.5 rounded-xl bg-[#10b981] hover:bg-emerald-400 text-[#050811] font-black transition-colors"
+              >
+                {{ liveTelemetry.loading ? 'Consultando...' : 'Escanear Coordenadas' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Métricas en vivo obtenidas de NASA POWER y SoilGrids -->
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div class="bg-[#050811] border border-slate-800 rounded-xl p-3">
+              <span class="text-[10px] font-mono text-slate-400 block">POROSIDAD SUELO (φ)</span>
+              <span class="text-base font-black font-mono text-[#38bdf8]">{{ liveTelemetry.porosityPct }}%</span>
+            </div>
+            <div class="bg-[#050811] border border-slate-800 rounded-xl p-3">
+              <span class="text-[10px] font-mono text-slate-400 block">HUMEDAD NASA POWER</span>
+              <span class="text-base font-black font-mono text-white">{{ liveTelemetry.soilMoisture }}</span>
+            </div>
+            <div class="bg-[#050811] border border-slate-800 rounded-xl p-3">
+              <span class="text-[10px] font-mono text-slate-400 block">TEMP. SUPERFICIAL</span>
+              <span class="text-base font-black font-mono text-[#f59e0b]">{{ liveTelemetry.soilTempC }} °C</span>
+            </div>
+            <div class="bg-[#050811] border border-slate-800 rounded-xl p-3">
+              <span class="text-[10px] font-mono text-slate-400 block">ÍNDICE RADIACIÓN UV</span>
+              <span class="text-base font-black font-mono text-[#fc3d21]">{{ liveTelemetry.uvIndex }}</span>
+            </div>
+            <div class="bg-[#050811] border border-[#10b981]/50 rounded-xl p-3 col-span-2 sm:col-span-1">
+              <span class="text-[10px] font-mono text-[#10b981] block">SIMILITUD ISAP EN VIVO</span>
+              <span class="text-lg font-black font-mono text-[#10b981]">{{ liveIsapScore }}%</span>
+            </div>
+          </div>
+
+          <!-- Visor de Comparación Visual (Cortina Deslizante o Lado a Lado) -->
+          <!--
+          <div class="space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-mono text-slate-300">
+                Fuente telemetría: <strong class="text-white">{{ liveTelemetry.sourceStatus }}</strong>
+              </span>
+              <div class="flex items-center gap-1.5 bg-[#050811] p-1 rounded-xl border border-slate-800 text-xs">
+                <button
+                  @click="imageCompareView = 'slider'"
+                  :class="imageCompareView === 'slider' ? 'bg-[#38bdf8] text-[#050811] font-bold' : 'text-slate-400'"
+                  class="px-2.5 py-1 rounded-lg transition-colors"
+                >
+                  Cortina Deslizante
+                </button>
+                <button
+                  @click="imageCompareView = 'split'"
+                  :class="imageCompareView === 'split' ? 'bg-[#38bdf8] text-[#050811] font-bold' : 'text-slate-400'"
+                  class="px-2.5 py-1 rounded-lg transition-colors"
+                >
+                  Vista Lado a Lado
+                </button>
+              </div>
+            </div>
+
+            <div v-if="imageCompareView === 'split'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="relative h-64 rounded-2xl overflow-hidden border border-[#38bdf8]/40 bg-[#050811]">
+                <img
+                  :src="activeAnalog.earthImg"
+                  @error="handleImageFallback($event, 'earth')"
+                  :alt="currentBoliviaSite.n"
+                  class="w-full h-full object-cover"
+                />
+                <div class="absolute bottom-3 left-3 bg-[#050811]/90 backdrop-blur px-3 py-1.5 rounded-xl border border-[#38bdf8]/50">
+                  <span class="text-[10px] font-mono text-[#38bdf8] block">TIERRA • BOLIVIA</span>
+                  <span class="text-xs font-bold text-white">{{ currentBoliviaSite.n }}</span>
+                </div>
+              </div>
+              <div class="relative h-64 rounded-2xl overflow-hidden border border-[#fc3d21]/40 bg-[#050811]">
+                <img
+                  :src="globeTarget === 'mars' ? activeAnalog.marsImg : activeAnalog.moonImg"
+                  @error="handleImageFallback($event, globeTarget)"
+                  :alt="currentBoliviaRef[0]"
+                  class="w-full h-full object-cover"
+                />
+                <div class="absolute bottom-3 left-3 bg-[#050811]/90 backdrop-blur px-3 py-1.5 rounded-xl border border-[#f59e0b]/50">
+                  <span class="text-[10px] font-mono text-[#f59e0b] block">{{ globeTarget === 'mars' ? 'MARTE' : 'LA LUNA' }}</span>
+                  <span class="text-xs font-bold text-white">{{ currentBoliviaRef[0] }}</span>
+                </div>
+              </div>
+            </div>
+            <div v-else class="relative h-72 sm:h-80 w-full rounded-2xl overflow-hidden border border-slate-700 select-none bg-[#050811]">
+              <img
+                :src="globeTarget === 'mars' ? activeAnalog.marsImg : activeAnalog.moonImg"
+                @error="handleImageFallback($event, globeTarget)"
+                :alt="currentBoliviaRef[0]"
+                class="w-full h-full object-cover"
+              />
+              <div class="absolute bottom-3 right-3 bg-[#050811]/90 backdrop-blur px-3 py-1.5 rounded-xl border border-[#f59e0b]/50 text-right">
+                <span class="text-[10px] font-mono text-[#f59e0b] block">{{ globeTarget === 'mars' ? 'MARTE' : 'LA LUNA' }}</span>
+                <span class="text-xs font-bold text-white">{{ currentBoliviaRef[0] }}</span>
+              </div>
+
+              <div class="absolute inset-0" :style="{ clipPath: `inset(0 ${100 - comparisonSlider}% 0 0)` }">
+                <img
+                  :src="activeAnalog.earthImg"
+                  @error="handleImageFallback($event, 'earth')"
+                  :alt="currentBoliviaSite.n"
+                  class="w-full h-full object-cover"
+                />
+                <div class="absolute bottom-3 left-3 bg-[#050811]/90 backdrop-blur px-3 py-1.5 rounded-xl border border-[#38bdf8]/50">
+                  <span class="text-[10px] font-mono text-[#38bdf8] block">TIERRA • BOLIVIA</span>
+                  <span class="text-xs font-bold text-white">{{ currentBoliviaSite.n }}</span>
+                </div>
+              </div>
+
+              <div class="absolute top-0 bottom-0 w-0.5 bg-white shadow-[0_0_12px_#fff] pointer-events-none" :style="{ left: comparisonSlider + '%' }">
+                <div class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 px-2 py-1 rounded-full bg-[#050811] border border-white text-[10px] font-mono font-bold text-white">
+                  ↔
+                </div>
+              </div>
+              <input type="range" min="5" max="95" v-model.number="comparisonSlider" class="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-20" />
+            </div>
+          </div>
+
+        -->
+
+          <!-- Desglose Comparativo de Analogía -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+            <div v-for="gf in activeAnalog.governingFeatures" :key="gf.feature" class="bg-[#050811] border border-slate-800 rounded-xl p-3 space-y-1">
+              <div class="flex items-center justify-between text-xs font-bold">
+                <span class="text-white">{{ gf.feature }}</span>
+                <span class="font-mono text-[#10b981]">{{ gf.matchPct }}%</span>
+              </div>
+              <p class="text-[11px] text-slate-400">
+                <strong class="text-slate-200">Espacio:</strong> {{ gf.spaceOrigin }} · <strong class="text-[#38bdf8]">Bolivia:</strong> {{ gf.earthMatch }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- =================================================================
+             RETO INTERACTIVO DE EXPLORACIÓN CIENTÍFICA (QUIZ PARA USUARIOS)
+        ================================================================== -->
+        <div class="bg-[#0b1120] border border-[#10b981]/40 rounded-2xl p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="text-[11px] font-mono font-bold uppercase tracking-widest text-[#10b981] block">
+                ENTRENAMIENTO DE ASTRONAUTAS Y GEÓLOGOS • MODO INTERACTIVO
+              </span>
+              <h3 class="text-lg font-black text-white">
+                Desafío de Selección de Análogos Planetarios ({{ quizScore }} / {{ quizQuestions.length }} aciertos)
+              </h3>
+            </div>
+            <button
+              @click="resetQuiz"
+              class="px-3 py-1.5 rounded-xl text-xs font-mono font-bold bg-[#050811] text-slate-300 border border-slate-700 hover:border-[#10b981]"
+            >
+              Reiniciar Desafío
+            </button>
+          </div>
+
+          <div class="bg-[#050811] border border-slate-800 rounded-xl p-4 space-y-3">
+            <p class="text-sm font-bold text-white">
+              Pregunta {{ currentQuizIdx + 1 }} de {{ quizQuestions.length }}: {{ currentQuizQuestion.q }}
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+              <button
+                v-for="(opt, oIdx) in currentQuizQuestion.options"
+                :key="oIdx"
+                @click="answerQuiz(oIdx)"
+                :class="
+                  quizSelectedOption === null
+                    ? 'bg-[#0b1120] border-slate-700 hover:border-[#38bdf8] text-slate-200'
+                    : oIdx === currentQuizQuestion.correct
+                    ? 'bg-[#10b981]/20 border-[#10b981] text-white font-bold'
+                    : quizSelectedOption === oIdx
+                    ? 'bg-[#fc3d21]/20 border-[#fc3d21] text-slate-200'
+                    : 'bg-[#0b1120]/50 border-slate-800 text-slate-500'
+                "
+                class="p-3 rounded-xl border text-left text-xs transition-all"
+              >
+                {{ opt }}
+              </button>
+            </div>
+            <div v-if="quizSelectedOption !== null" class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
+              <p class="text-xs text-slate-300 flex-1">{{ currentQuizQuestion.explanation }}</p>
+              <button
+                v-if="currentQuizIdx < quizQuestions.length - 1"
+                @click="nextQuizQuestion"
+                class="px-4 py-1.5 rounded-lg bg-[#38bdf8] text-[#050811] text-xs font-black"
+              >
+                Siguiente Pregunta →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const { createApp, ref, reactive, computed, watch, onMounted, nextTick } = Vue;
+
+    createApp({
+      setup() {
+        const activeTab = ref('catalog');
+        const selectedLayerIndex = ref(0);
+
+        // ====================================================================
+        // DATOS PLANETARIOS (SOLAR SYSTEM SCOPE TEXTURES)
+        // ====================================================================
+        const planetaryBodies = {
+          earth: {
+            id: 'earth',
+            name: 'LA TIERRA',
+            subtitle: 'SOL-III • PLANETA DE REFERENCIA Y LABORATORIOS ANÁLOGOS',
+            accent: '#38bdf8',
+            url8k: 'https://www.solarsystemscope.com/textures/download/8k_earth_daymap.jpg',
+            url2k: 'https://www.solarsystemscope.com/textures/download/2k_earth_daymap.jpg',
+            resolutionLabel: '8192 × 4096 px (8K Equirectangular)',
+            fileSize: '4.8 MB • JPG 2:1',
+            missionSource: 'NASA Blue Marble / MODIS Terra',
+            quickStats: [
+              { label: 'Diámetro', value: '12,756 km' },
+              { label: 'Densidad', value: '5.51 g/cm³' },
+              { label: 'Gravedad', value: '9.81 m/s²' },
+              { label: 'Porosidad Suelo', value: '30% – 50%' }
+            ],
+            summary:
+              'Único cuerpo conocido con hidrósfera líquida estable y tectónica de placas activa. Sus cuencas hiperáridas de gran altitud en el Altiplano Sur de Bolivia replican las condiciones superficiales y mineralógicas de la Luna y Marte.',
+            internalLayers: [
+              { name: 'Corteza Terrestre (Continental y Oceánica)', depth: '0 – 70 km', temp: '0 °C a 800 °C', composition: 'Silicatos de aluminio, basalto, granito, evaporitas y regolito edáfico superficial.', color: '#38bdf8', radiusPct: 100 },
+              { name: 'Manto Superior e Inferior', depth: '70 – 2,890 km', temp: '800 °C a 3,700 °C', composition: 'Peridotita, olivino, piroxenos y silicatos de magnesio/hierro bajo convección plástica.', color: '#f97316', radiusPct: 84 },
+              { name: 'Núcleo Externo Líquido', depth: '2,890 – 5,150 km', temp: '4,000 °C a 5,000 °C', composition: 'Aleación fundida de hierro (Fe) y níquel (Ni) que genera el campo geomagnético protector.', color: '#facc15', radiusPct: 54 },
+              { name: 'Núcleo Interno Sólido', depth: '5,150 – 6,371 km', temp: '~5,400 °C', composition: 'Esfera cristalina de hierro-níquel sometida a más de 3.6 millones de atmósferas.', color: '#fef08a', radiusPct: 26 }
+            ],
+            soilStructure: [
+              { horizon: 'Horizonte O / A (Suelo Superficial y Costras Evaporíticas)', thickness: '0 – 30 cm', details: 'En análogos hiperáridos (Salar de Uyuni y Dalí) es reemplazado por costras de halita, sulfatos, yeso y grava volcánica estéril.' },
+              { horizon: 'Horizonte B (Subsuelo Mineral y Arcillas Esmectitas)', thickness: '30 – 120 cm', details: 'Acumulación de óxidos de hierro (hematita/goethita), carbonatos y arcillas hidratadas clave para comparar con el Cráter Jezero.' },
+              { horizon: 'Horizonte C / Regolito Basal (Roca Madre Fragmentada)', thickness: '1.2 – 15 m', details: 'Material piroclástico andesítico-basáltico con porosidad del 32% al 47%, ideal como simulante de regolito para sinterización 3D.' }
+            ],
+            geophysicalSpecs: [
+              { param: 'Porosidad Media Superficial', val: '32% – 47% (Altiplano Árido)' },
+              { param: 'Densidad Aparente Suelo', val: '1.35 – 1.65 g/cm³' },
+              { param: 'Presión Atmosférica Nivel Mar', val: '1,013 mbar (480–650 mbar en Andes)' },
+              { param: 'Albedo Medio Global', val: '0.30 (0.68 – 0.75 en Salar de Uyuni)' }
+            ]
+          },
+          moon: {
+            id: 'moon',
+            name: 'LA LUNA',
+            subtitle: 'SOL-III A • SATÉLITE NATURAL Y OBJETIVO ARTEMIS',
+            accent: '#94a3b8',
+            url8k: 'https://www.solarsystemscope.com/textures/download/8k_moon.jpg',
+            url2k: 'https://www.solarsystemscope.com/textures/download/2k_moon.jpg',
+            resolutionLabel: '8192 × 4096 px (8K Equirectangular)',
+            fileSize: '5.1 MB • JPG 2:1',
+            missionSource: 'NASA LRO WAC / LOLA Elevation',
+            quickStats: [
+              { label: 'Diámetro', value: '3,474 km' },
+              { label: 'Densidad', value: '3.34 g/cm³' },
+              { label: 'Gravedad', value: '1.62 m/s² (0.16g)' },
+              { label: 'Porosidad Regolito', value: '43% – 52%' }
+            ],
+            summary:
+              'Cuerpo rocoso sin atmósfera ni agua líquida superficial, esculpido por miles de millones de años de impactos meteoríticos. Su Polo Sur (Cráter Shackleton) alberga hielo de agua en sombras permanentes y picos de iluminación casi continua.',
+            internalLayers: [
+              { name: 'Regolito Lunar y Corteza Anortosítica', depth: '0 – 50 km', temp: '-173 °C a +127 °C', composition: 'Capa superior pulverizada (4–15 m) sobre roca rica en plagioclasa cálcica y basaltos de titanio.', color: '#cbd5e1', radiusPct: 100 },
+              { name: 'Manto Litosférico Superior', depth: '50 – 1,000 km', temp: '300 °C a 1,100 °C', composition: 'Olivino, ortopiroxeno y clinopiroxeno rígido; origen de los antiguos magmas lunares.', color: '#64748b', radiusPct: 82 },
+              { name: 'Zona Parcialmente Fundida (Astenósfera)', depth: '1,000 – 1,350 km', temp: '~1,300 °C', composition: 'Capa silicatada rica en óxidos de hierro y titanio con atenuación sísmica.', color: '#f59e0b', radiusPct: 45 },
+              { name: 'Núcleo Interno de Hierro', depth: '1,350 – 1,737 km', temp: '~1,400 °C', composition: 'Núcleo sólido de hierro (~240 km de radio) rodeado por hierro líquido (~90 km).', color: '#fef08a', radiusPct: 22 }
+            ],
+            soilStructure: [
+              { horizon: 'Polvo Lunar Superficial (Finos < 20 µm)', thickness: '0 – 15 cm', details: 'Partículas abrasivas formadas por micrometeoritos. Alta porosidad (45%–52%) y baja cohesión sin humedad.' },
+              { horizon: 'Regolito Compactado Intermedio', thickness: '15 cm – 3 m', details: 'Incremento rápido de densidad aparente (1.50 a 1.85 g/cm³) con fragmentos angulosos de anortosita.' },
+              { horizon: 'Megaregolito Fracturado y Hielo Polar (PSR)', thickness: '3 – 20+ m', details: 'En cráteres permanentemente sombreados como Shackleton (-230 °C), los poros atrapan cristales de hielo.' }
+            ],
+            geophysicalSpecs: [
+              { param: 'Porosidad del Regolito', val: '43% – 52% (Muy alta en superficie)' },
+              { param: 'Densidad Aparente Suelo', val: '1.45 – 1.75 g/cm³' },
+              { param: 'Presión Atmosférica', val: '~10⁻¹² torr (Ultra-alto vacío)' },
+              { param: 'Albedo Superficial', val: '0.12 (hasta 0.45 en bordes polares)' }
+            ]
+          },
+          mars: {
+            id: 'mars',
+            name: 'MARTE',
+            subtitle: 'SOL-IV • EL PLANETA ROJO Y PALEOLAGOS ANTIGUOS',
+            accent: '#fc3d21',
+            url8k: 'https://www.solarsystemscope.com/textures/download/8k_mars.jpg',
+            url2k: 'https://www.solarsystemscope.com/textures/download/2k_mars.jpg',
+            resolutionLabel: '8192 × 4096 px (8K Equirectangular)',
+            fileSize: '5.4 MB • JPG 2:1',
+            missionSource: 'NASA Viking / MGS MOLA / MRO',
+            quickStats: [
+              { label: 'Diámetro', value: '6,779 km' },
+              { label: 'Densidad', value: '3.93 g/cm³' },
+              { label: 'Gravedad', value: '3.72 m/s² (0.38g)' },
+              { label: 'Porosidad Suelo', value: '35% – 48%' }
+            ],
+            summary:
+              'Planeta desértico frío con atmósfera tenue de CO₂ (6.1 mbar) y marcada dicotomía topográfica: planicies sedimentarias bajas en el norte (Borealis Basin) y tierras altas craterizadas y volcánicas en el sur (Tharsis y Cráter Jezero).',
+            internalLayers: [
+              { name: 'Corteza Basáltica Oxidada', depth: '0 – 50 km', temp: '-125 °C a +20 °C', composition: 'Roca volcánica basáltica cubierta por polvo rico en óxido de hierro (Fe₂O₃), sulfatos y arcillas.', color: '#fc3d21', radiusPct: 100 },
+              { name: 'Manto de Silicatos Ricos en Hierro', depth: '50 – 1,560 km', temp: '500 °C a 1,500 °C', composition: 'Silicatos de magnesio y hierro; alimentó volcanes gigantes como Olympus Mons.', color: '#ea580c', radiusPct: 83 },
+              { name: 'Capa Silicatada Fundida Basal', depth: '1,560 – 1,710 km', temp: '~1,800 °C', composition: 'Envoltura densa de silicato fundido detectada por NASA InSight sobre el límite núcleo-manto.', color: '#f59e0b', radiusPct: 54 },
+              { name: 'Núcleo Líquido de Hierro-Azufre', depth: '1,710 – 3,390 km', temp: '~2,000 °C', composition: 'Núcleo completamente líquido rico en hierro, níquel y azufre (14–16%).', color: '#fde047', radiusPct: 48 }
+            ],
+            soilStructure: [
+              { horizon: 'Costra Duricrust y Polvo Férrico Eólico', thickness: '0 – 10 cm', details: 'Polvo fino rico en hematita nanométrica, sulfatos y sales de perclorato (0.5%–1%).' },
+              { horizon: 'Sedimentos Paleolacustres (Arcillas Esmectitas)', thickness: '10 cm – 5 m', details: 'Depósitos estratificados en deltas como el Cráter Jezero donde corrió agua líquida hace 3,700 Ma.' },
+              { horizon: 'Regolito Basáltico y Permafrost Subsuperficial', thickness: '5 – 100+ m', details: 'Grava volcánica fracturada con porosidad del 35% al 48% que alberga hielo de agua.' }
+            ],
+            geophysicalSpecs: [
+              { param: 'Porosidad del Suelo Marciano', val: '35% – 48% (Inercia térmica THEMIS)' },
+              { param: 'Densidad Aparente Regolito', val: '1.20 – 1.60 g/cm³' },
+              { param: 'Presión Atmosférica Media', val: '6.1 mbar (95.3% CO₂)' },
+              { param: 'Albedo Medio Global', val: '0.25 (0.15 en basaltos, 0.40 en polvo)' }
+            ]
+          }
+        };
+
+        const bodiesList = computed(() => Object.values(planetaryBodies));
+        const isPlanetTab = computed(() => ['earth', 'moon', 'mars'].includes(activeTab.value));
+        const currentBody = computed(() => planetaryBodies[activeTab.value] || null);
+
+        // ====================================================================
+        // VISOR ESFÉRICO 3D INDIVIDUAL (PESTAÑAS TIERRA, LUNA, MARTE)
+        // ====================================================================
+        const sphereCanvas = ref(null);
+        const sunAngle = ref(0.35);
+        const autoSpin = ref(true);
+        const sphereStatusText = ref('Cargando textura Blue Marble...');
+        let sphereRotY = 0.25;
+        let sphereDragging = false;
+        let sphereLastX = 0;
+        let offscreenTex = null;
+        let sphereTimer = null;
+
+        // Filtro que realza los aspectos dorados/arena y el realismo satelital (como en la 2da imagen)
+        const enhanceGoldenRealisticEarth = (canvas, W, H) => {
+          const g = canvas.getContext('2d');
+          const im = g.getImageData(0, 0, W, H);
+          const d = im.data;
+          for (let i = 0; i < d.length; i += 4) {
+            let r = d[i], gr = d[i + 1], b = d[i + 2];
+            const isOcean = b > r * 1.12 && b > gr * 1.04;
+            if (isOcean) {
+              // Océano azul profundo con matices turquesa suaves cerca de costas
+              d[i] = Math.min(255, r * 0.78);
+              d[i + 1] = Math.min(255, gr * 0.96 + 6);
+              d[i + 2] = Math.min(255, b * 1.12 + 12);
+            } else {
+              // Realzar tonos dorados cálidos en desiertos/montañas (Sahara, Arabia, Andes de Bolivia) y verdes orgánicos
+              const aridity = Math.max(0, (r - b) / 255);
+              d[i] = Math.min(255, r * 1.18 + aridity * 36 + 10);
+              d[i + 1] = Math.min(255, gr * 1.10 + aridity * 22 + 6);
+              d[i + 2] = Math.min(255, b * 0.88);
+            }
+          }
+          g.putImageData(im, 0, 0);
+          return canvas;
+        };
+
+        // Generador Fotorrealista Orgánico "Golden Blue Marble" (Sin polígonos rectos, bordes suaves fractales)
+        const buildBlueMarbleCanvas = (W = 1024, H = 512) => {
+          const c = document.createElement('canvas');
+          c.width = W;
+          c.height = H;
+          const g = c.getContext('2d');
+
+          const hash = (x, y) => {
+            const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+            return h - Math.floor(h);
+          };
+          const vn = (x, y) => {
+            const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+            const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+            return (
+              hash(xi, yi) * (1 - u) * (1 - v) +
+              hash(xi + 1, yi) * u * (1 - v) +
+              hash(xi, yi + 1) * (1 - u) * v +
+              hash(xi + 1, yi + 1) * u * v
+            );
+          };
+          const fbm = (x, y, oct = 6) => {
+            let s = 0, a = 0.5;
+            for (let i = 0; i < oct; i++) {
+              s += a * vn(x, y);
+              x *= 2.03;
+              y *= 2.03;
+              a *= 0.5;
+            }
+            return s;
+          };
+
+          // Máscara continental de baja resolución para obtener costas fractales naturales (nunca líneas rectas)
+          const maskC = document.createElement('canvas');
+          maskC.width = W;
+          maskC.height = H;
+          const mg = maskC.getContext('2d');
+          mg.fillStyle = '#000';
+          mg.fillRect(0, 0, W, H);
+          mg.filter = 'blur(6px)';
+          mg.fillStyle = '#fff';
+
+          const px = (lon, lat) => [((lon + 180) / 360) * W, ((90 - lat) / 180) * H];
+          const fillContinent = (pts) => {
+            mg.beginPath();
+            pts.forEach((p, i) => {
+              const [x, y] = px(p[0], p[1]);
+              i ? mg.lineTo(x, y) : mg.moveTo(x, y);
+            });
+            mg.closePath();
+            mg.fill();
+          };
+
+          // Siluetas continentales detalladas
+          fillContinent([[-168, 66], [-140, 70], [-95, 72], [-80, 63], [-62, 58], [-55, 48], [-70, 43], [-81, 25], [-90, 21], [-97, 26], [-105, 20], [-92, 15], [-84, 9], [-78, 8], [-105, 19], [-117, 32], [-125, 48], [-140, 60], [-165, 60]]);
+          fillContinent([[-80, -4], [-76, 8], [-62, 10], [-50, 1], [-35, -6], [-38, -14], [-48, -26], [-58, -38], [-66, -44], [-68, -54], [-74, -50], [-72, -32], [-70, -18], [-77, -11]]);
+          fillContinent([[-17, 15], [-16, 28], [-6, 36], [10, 37], [25, 32], [33, 30], [43, 12], [51, 12], [41, -2], [40, -15], [35, -25], [20, -35], [15, -26], [12, -15], [9, -2], [8, 4], [-8, 5]]);
+          fillContinent([[34, 29], [38, 32], [48, 30], [56, 22], [60, 20], [52, 15], [44, 13]]);
+          fillContinent([[-9, 38], [-9, 43], [-4, 48], [2, 51], [8, 58], [15, 66], [30, 70], [65, 73], [110, 75], [170, 66], [155, 52], [140, 40], [122, 31], [118, 22], [105, 10], [98, 16], [88, 22], [78, 8], [70, 22], [62, 25], [50, 30], [42, 37], [35, 36], [28, 41], [23, 38], [15, 40], [12, 44], [3, 42]]);
+          fillContinent([[114, -22], [128, -14], [142, -11], [153, -26], [147, -38], [134, -34], [115, -34]]);
+          fillContinent([[44, -20], [49, -13], [50, -18], [47, -25], [44, -25]]);
+          fillContinent([[-55, 60], [-20, 70], [-20, 82], [-60, 82], [-70, 76]]);
+
+          const maskData = mg.getImageData(0, 0, W, H).data;
+          const im = g.createImageData(W, H);
+          const d = im.data;
+
+          for (let y = 0; y < H; y++) {
+            const lat = 90 - (y / H) * 180;
+            for (let x = 0; x < W; x++) {
+              const lon = (x / W) * 360 - 180;
+              const idx = (y * W + x) * 4;
+              const baseMask = maskData[idx] / 255;
+
+              // Perturbación fractal de la costa para que parezca imagen satelital real
+              const coastNoise = fbm(x / 18 + 7, y / 18 + 13, 5);
+              const detailNoise = fbm(x / 6 + 40, y / 6 + 20, 4);
+              const landVal = baseMask + (coastNoise - 0.5) * 0.42;
+
+              if (landVal < 0.46) {
+                // Océano profundo con arrecifes y mares costeros turquesa suaves (como Mar Rojo e Índico en la 2da imagen)
+                const shelf = Math.max(0, (landVal - 0.25) / 0.21);
+                const shallowBoost = Math.pow(shelf, 2.2) * coastNoise;
+                const deepVar = 0.85 + 0.3 * coastNoise;
+                d[idx] = Math.min(255, (7 + shallowBoost * 28) * deepVar);
+                d[idx + 1] = Math.min(255, (42 + shallowBoost * 115) * deepVar);
+                d[idx + 2] = Math.min(255, (98 + shallowBoost * 95) * deepVar);
+              } else {
+                // Tierra firme: mezcla realista de bosques verdes y grandes desiertos dorados (Sahara, Arabia, Asia, Andes/Bolivia)
+                const saharaArabia = Math.exp(-Math.pow((lat - 23) / 13, 2) - Math.pow((lon - 22) / 34, 2));
+                const centralAsia = Math.exp(-Math.pow((lat - 36) / 12, 2) - Math.pow((lon - 78) / 26, 2));
+                const boliviaAndes = Math.exp(-Math.pow((lat + 21) / 9, 2) - Math.pow((lon + 67.5) / 5.5, 2));
+                const namibAus = Math.exp(-Math.pow((lat + 24) / 10, 2)) * 0.65;
+
+                const desertWeight = Math.min(
+                  1,
+                  Math.max(saharaArabia * 1.25, centralAsia * 1.1, boliviaAndes * 1.3, namibAus) +
+                    (coastNoise - 0.48) * 0.45
+                );
+
+                // Verde vegetación (Europa, África Central, Amazonas) vs Dorado luminoso (Desiertos y Altiplano)
+                const vegR = 54 + detailNoise * 38;
+                const vegG = 102 + detailNoise * 46;
+                const vegB = 42 + detailNoise * 24;
+
+                const goldR = 236 + (detailNoise - 0.5) * 38;
+                const goldG = 206 + (detailNoise - 0.5) * 36;
+                const goldB = 148 + (detailNoise - 0.5) * 32;
+
+                const reliefShade = 0.82 + 0.36 * detailNoise;
+                let r = (vegR * (1 - desertWeight) + goldR * desertWeight) * reliefShade;
+                let gr = (vegG * (1 - desertWeight) + goldG * desertWeight) * reliefShade;
+                let b = (vegB * (1 - desertWeight) + goldB * desertWeight) * reliefShade;
+
+                // Brillo salino en el Salar de Uyuni / Sud Lípez
+                const uyuniSpot = Math.exp(-Math.pow((lat + 20.5) / 2.2, 2) - Math.pow((lon + 67.5) / 1.8, 2));
+                if (uyuniSpot > 0.35) {
+                  r = r * (1 - uyuniSpot * 0.5) + 250 * (uyuniSpot * 0.5);
+                  gr = gr * (1 - uyuniSpot * 0.5) + 242 * (uyuniSpot * 0.5);
+                  b = b * (1 - uyuniSpot * 0.5) + 220 * (uyuniSpot * 0.5);
+                }
+
+                d[idx] = Math.min(255, Math.max(0, r));
+                d[idx + 1] = Math.min(255, Math.max(0, gr));
+                d[idx + 2] = Math.min(255, Math.max(0, b));
+              }
+
+              // Casquetes polares suaves
+              const polar = Math.abs(lat) > 74 ? Math.min(1, (Math.abs(lat) - 74) / 11) : 0;
+              if (polar > 0) {
+                d[idx] = d[idx] * (1 - polar) + 245 * polar;
+                d[idx + 1] = d[idx + 1] * (1 - polar) + 250 * polar;
+                d[idx + 2] = d[idx + 2] * (1 - polar) + 255 * polar;
+              }
+              d[idx + 3] = 255;
+            }
+          }
+          g.putImageData(im, 0, 0);
+          return c;
+        };
+
+        const drawIndividualSphere = () => {
+          const canvas = sphereCanvas.value;
+          const body = currentBody.value;
+          if (!canvas || !offscreenTex || !body) return;
+          const ctx = canvas.getContext('2d');
+          const size = canvas.width;
+          const half = size / 2;
+          const radius = half * 0.82;
+          const tCtx = offscreenTex.getContext('2d');
+          const tW = offscreenTex.width;
+          const tH = offscreenTex.height;
+          let pixels;
+          try {
+            pixels = tCtx.getImageData(0, 0, tW, tH).data;
+          } catch {
+            return;
+          }
+
+          // Fondo estelar negro profundo (idéntico a la imagen de referencia)
+          ctx.fillStyle = '#02040a';
+          ctx.fillRect(0, 0, size, size);
+          for (let s = 0; s < 85; s++) {
+            const sx = ((Math.sin(s * 91.7) * 0.5 + 0.5) * size) | 0;
+            const sy = ((Math.cos(s * 57.3) * 0.5 + 0.5) * size) | 0;
+            const distCenter = Math.hypot(sx - half, sy - half);
+            if (distCenter > radius * 1.02) {
+              ctx.fillStyle = s % 3 === 0 ? 'rgba(255,255,255,0.9)' : 'rgba(200,225,255,0.48)';
+              ctx.fillRect(sx, sy, s % 5 === 0 ? 1.8 : 1.1, s % 5 === 0 ? 1.8 : 1.1);
+            }
+          }
+
+          // Halo atmosférico exterior brillante para la Tierra
+          if (body.id === 'earth') {
+            const halo = ctx.createRadialGradient(half, half, radius * 0.92, half, half, radius * 1.11);
+            halo.addColorStop(0, 'rgba(75, 175, 255, 0.55)');
+            halo.addColorStop(0.55, 'rgba(45, 145, 250, 0.22)');
+            halo.addColorStop(1, 'rgba(10, 60, 150, 0)');
+            ctx.fillStyle = halo;
+            ctx.beginPath();
+            ctx.arc(half, half, radius * 1.11, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          const outImg = ctx.getImageData(0, 0, size, size);
+          const out = outImg.data;
+          const lx = Math.cos(sunAngle.value) * 0.75;
+          const ly = -0.22;
+          const lz = Math.sin(sunAngle.value) * 0.85 + 0.35;
+          const lLen = Math.hypot(lx, ly, lz);
+          const nlx = lx / lLen, nly = ly / lLen, nlz = lz / lLen;
+
+          for (let py = 0; py < size; py++) {
+            const ny = (py - half) / radius;
+            if (Math.abs(ny) > 1) continue;
+            for (let px = 0; px < size; px++) {
+              const nx = (px - half) / radius;
+              const rSq = nx * nx + ny * ny;
+              if (rSq > 1) continue;
+              const nz = Math.sqrt(1 - rSq);
+              const lat = Math.asin(Math.max(-1, Math.min(1, ny)));
+              let lon = Math.atan2(nx, nz) + sphereRotY;
+              lon = ((lon % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+              const u = Math.min(tW - 1, Math.floor((lon / (Math.PI * 2)) * tW));
+              const v = Math.min(tH - 1, Math.floor(((lat + Math.PI / 2) / Math.PI) * tH));
+              const tIdx = (v * tW + u) * 4;
+
+              const dot = nx * nlx + ny * nly + nz * nlz;
+              const diff = Math.max(0.18, Math.min(1.22, dot * 1.05 + 0.25));
+
+              let rCol = pixels[tIdx] * diff;
+              let gCol = pixels[tIdx + 1] * diff;
+              let bCol = pixels[tIdx + 2] * diff;
+
+              // Nubes suaves arremolinadas y atmósfera azul celeste en el borde de la Tierra
+              if (body.id === 'earth') {
+                const cWave =
+                  Math.sin(lon * 4.5 + Math.cos(lat * 5.2) * 1.8) *
+                  Math.cos(lat * 3.8 - lon * 2.1);
+                const cloudAlpha = cWave > 0.36 ? Math.min(0.75, (cWave - 0.36) * 1.45) : 0;
+                rCol = rCol * (1 - cloudAlpha) + 250 * cloudAlpha * diff;
+                gCol = gCol * (1 - cloudAlpha) + 253 * cloudAlpha * diff;
+                bCol = bCol * (1 - cloudAlpha) + 255 * cloudAlpha * diff;
+
+                const rim = Math.pow(1 - nz, 2.5);
+                rCol += 65 * rim;
+                gCol += 165 * rim;
+                bCol += 255 * rim * 1.1;
+              } else if (body.id === 'mars') {
+                const rim = Math.pow(1 - nz, 3);
+                rCol += 245 * rim * 0.65;
+                gCol += 95 * rim * 0.45;
+                bCol += 45 * rim * 0.35;
+              }
+
+              const oIdx = (py * size + px) * 4;
+              out[oIdx] = Math.min(255, rCol);
+              out[oIdx + 1] = Math.min(255, gCol);
+              out[oIdx + 2] = Math.min(255, bCol);
+              out[oIdx + 3] = 255;
+            }
+          }
+          ctx.putImageData(outImg, 0, 0);
+        };
+
+        const loadSphereTexture = () => {
+          const body = currentBody.value;
+          if (!body) return;
+          const off = document.createElement('canvas');
+          off.width = 1024;
+          off.height = 512;
+          const octx = off.getContext('2d');
+
+          const fallback = () => {
+            if (body.id === 'earth') {
+              offscreenTex = buildBlueMarbleCanvas(1024, 512);
+              sphereStatusText.value = 'Modelo Blue Marble Satelital Activo';
+              drawIndividualSphere();
+              return;
+            }
+            const im = octx.createImageData(1024, 512);
+            const d = im.data;
+            for (let y = 0; y < 512; y++) {
+              const lat = (y / 512 - 0.5) * Math.PI;
+              for (let x = 0; x < 1024; x++) {
+                const lon = (x / 1024) * Math.PI * 2;
+                const n = Math.sin(lon * 3 + Math.cos(lat * 4)) * 0.5 + Math.cos(lat * 6 - lon * 2) * 0.3;
+                const i = (y * 1024 + x) * 4;
+                if (body.id === 'moon') {
+                  const s = Math.max(45, Math.min(215, 130 + n * 75));
+                  d[i] = d[i + 1] = d[i + 2] = s;
+                } else {
+                  d[i] = Math.max(90, Math.min(245, 195 + n * 55));
+                  d[i + 1] = Math.max(35, Math.min(130, 82 + n * 42));
+                  d[i + 2] = Math.max(20, Math.min(80, 46 + n * 24));
+                }
+                d[i + 3] = 255;
+              }
+            }
+            octx.putImageData(im, 0, 0);
+            offscreenTex = off;
+            sphereStatusText.value = 'Mapa Esférico Científico Activo';
+            drawIndividualSphere();
+          };
+
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            try {
+              octx.drawImage(img, 0, 0, 1024, 512);
+              octx.getImageData(0, 0, 1, 1);
+              if (body.id === 'earth') enhanceGoldenRealisticEarth(off, 1024, 512);
+              offscreenTex = off;
+              sphereStatusText.value = 'Textura Satelital Realista Activa';
+              drawIndividualSphere();
+            } catch {
+              fallback();
+            }
+          };
+          img.onerror = fallback;
+          img.src =
+            body.id === 'earth'
+              ? 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg'
+              : body.id === 'moon'
+              ? 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg'
+              : body.url2k;
+        };
+
+        const onSpherePointerDown = (e) => {
+          sphereDragging = true;
+          sphereLastX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+        };
+        const onSpherePointerMove = (e) => {
+          if (!sphereDragging) return;
+          const x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+          sphereRotY = (sphereRotY - (x - sphereLastX) * 0.012 + Math.PI * 2) % (Math.PI * 2);
+          sphereLastX = x;
+          drawIndividualSphere();
+        };
+        const onSpherePointerUp = () => {
+          sphereDragging = false;
+        };
+
+        watch(sunAngle, drawIndividualSphere);
+
+        // ====================================================================
+        // ESCENARIO DUAL 3D Y ATLAS DE ANÁLOGOS DE BOLIVIA 3D (UNIFICADO)
+        // ====================================================================
+        const dualGlobeStage = ref(null);
+        const globeTarget = ref('mars'); // 'mars' | 'moon'
+        const globeRealScale = ref(false);
+        const globeAutoRotate = ref(true);
+        const globeCloudsVisible = ref(true);
+        const hoveredGlobeMarker = ref(null);
+        let threeCtx = null;
+        let threeAnimId = null;
+
+        // Simulador interactivo de ingeniería de base y aterrizaje
+        const simMaxSlope = ref(5.0);
+        const simMinPorosity = ref(36);
+        const simMinUv = ref(12.0);
+
+        const missionEngineeringEval = computed(() => {
+          const siteStats = boliviaDemStats[currentBoliviaSite.value.id] || { pendiente_rms_deg: 2.5 };
+          const slope = siteStats.pendiente_rms_deg;
+          const porosity = liveTelemetry.porosityPct;
+          const uv = parseFloat(liveTelemetry.uvIndex) || 14.0;
+
+          const landingOk = slope <= simMaxSlope.value;
+          const baseOk = porosity >= simMinPorosity.value && uv >= simMinUv.value * 0.85;
+
+          return {
+            landingOk,
+            landingReason: landingOk
+              ? `Pendiente RMS de ${slope}° dentro del límite seguro (${simMaxSlope.value}°). Estabilidad garantizada.`
+              : `Pendiente RMS de ${slope}° excede el máximo tolerado (${simMaxSlope.value}°). Solo apto para rovers.`,
+            baseOk,
+            baseReason: baseOk
+              ? `Porosidad ${porosity}% y radiación ${uv} UV óptimas para sinterización de regolito y pruebas EVA.`
+              : `Porosidad (${porosity}% vs ${simMinPorosity}% req.) o radiación UV requieren compactación adicional.`
+          };
+        });
+
+        // Quiz interactivo para los usuarios
+        const quizQuestions = [
+          {
+            q: '¿Por qué la NASA utiliza el Salar de Uyuni en Bolivia como análogo clave para misiones lunares?',
+            options: [
+              'Porque tiene volcanes activos con lava líquida constante',
+              'Por su superficie hiper-plana (< 0.01° de pendiente) y alto albedo ideal para calibrar altímetros láser como LRO LOLA',
+              'Porque su atmósfera tiene 95% de dióxido de carbono'
+            ],
+            correct: 1,
+            explanation: '¡Correcto! La planicie extrema del Salar de Uyuni permite calibrar con precisión milimétrica los altímetros láser orbitales usados en la Luna y la Tierra.'
+          },
+          {
+            q: '¿Qué característica del Salar y Desierto de Salvador Dalí (Sud Lípez) lo vincula directamente con el Cráter Jezero en Marte?',
+            options: [
+              'Cuencas paleolacustres secas ricas en sulfatos, arcillas esmectitas y óxidos de hierro',
+              'Bosques húmedos tropicales con alta presión atmosférica',
+              'Cráteres de impacto de 100 km de profundidad'
+            ],
+            correct: 0,
+            explanation: '¡Exacto! Ambos comparten una historia de lagos evaporados que dejaron minerales hidratados donde se puede estudiar la extracción de agua (ISRU).'
+          },
+          {
+            q: '¿Qué parámetro edáfico mide la fracción de espacio vacío entre partículas del suelo para imprimir hábitats en 3D?',
+            options: [
+              'La velocidad de rotación orbital',
+              'La porosidad del suelo (φ), calculada a partir de la densidad aparente',
+              'El campo magnético del núcleo interno'
+            ],
+            correct: 1,
+            explanation: '¡Muy bien! Conocer la porosidad (35%–48% en Marte y 43%–52% en la Luna) permite diseñar cimentaciones y ladrillos sinterizados estables.'
+          }
+        ];
+        const currentQuizIdx = ref(0);
+        const quizSelectedOption = ref(null);
+        const quizScore = ref(0);
+        const currentQuizQuestion = computed(() => quizQuestions[currentQuizIdx.value]);
+
+        const answerQuiz = (optIdx) => {
+          if (quizSelectedOption.value !== null) return;
+          quizSelectedOption.value = optIdx;
+          if (optIdx === currentQuizQuestion.value.correct) {
+            quizScore.value += 1;
+          }
+        };
+        const nextQuizQuestion = () => {
+          if (currentQuizIdx.value < quizQuestions.length - 1) {
+            currentQuizIdx.value += 1;
+            quizSelectedOption.value = null;
+          }
+        };
+        const resetQuiz = () => {
+          currentQuizIdx.value = 0;
+          quizSelectedOption.value = null;
+          quizScore.value = 0;
+        };
+
+        const jumpToComparisonTarget = (targetBody) => {
+          globeTarget.value = targetBody;
+          setTab('analogs');
+        };
+
+        // ====================================================================
+        // DATOS MAESTROS: 7 SITIOS DE BOLIVIA, REFERENCIAS Y TELEMETRÍA EN VIVO
+        // ====================================================================
+        const boliviaDims = ['Geología', 'Terreno', 'Temperatura', 'Agua/Hielo', 'Polvo/Viento', 'Habitabilidad', 'Subsuelo'];
+        const boliviaSites = [
+          { n: 'Salar de Uyuni', id: 'uyuni', analogKey: 'uyuni-moon', ll: [-20.13, -67.49], d: 'Mayor salar del mundo: evaporitas y superficie casi perfectamente plana. Útil para pruebas de aterrizaje, navegación de rovers y calibración de satélites.', m: [8, 9, 5, 4, 6, 5, 2], l: [3, 9, 3, 1, 2, 1, 1], f: '3 656 m · ~10 000 km² · pendiente menor a 0,01°', r: { mars: 0, moon: 2 } },
+          { n: 'Laguna Colorada / Sol de Mañana', id: 'colorada', analogKey: 'dali-mars', ll: [-22.2, -67.8], d: 'Lagunas hipersalinas y campos geotérmicos con extremófilos: análogo de sistemas hidrotermales marcianos antiguos.', m: [8, 5, 5, 4, 6, 8, 3], l: [3, 4, 3, 1, 2, 1, 2], f: '4 300 m · fumarolas, sulfatos, microbios', r: { mars: 1, moon: 1 } },
+          { n: 'Altiplano-Puna (Pastos Grandes)', id: 'puna', analogKey: 'dali-mars', ll: [-21.6, -67.9], d: 'Gran complejo volcánico con ignimbritas y calderas en clima árido; relevante para la geología volcánica de ambos cuerpos.', m: [8, 6, 5, 3, 6, 4, 5], l: [6, 6, 4, 1, 2, 1, 5], f: 'Calderas · ignimbritas · volcanismo ácido', r: { mars: 1, moon: 1 } },
+          { n: 'Licancabur y lagunas de altura', id: 'licancabur', analogKey: 'licancabur-dual', ll: [-22.83, -67.88], d: 'UV extremo, aire delgado y seco y fuertes oscilaciones térmicas, con vida en lagos de cráter. Análogo de habitabilidad marciana.', m: [6, 5, 7, 5, 6, 8, 3], l: [3, 5, 5, 2, 2, 1, 2], f: '5 900 m · UV muy alto · lago de cráter', r: { mars: 0, moon: 0 } },
+          { n: 'Glaciares andinos (Sajama)', id: 'sajama', analogKey: 'licancabur-dual', ll: [-18.1, -68.9], d: 'Hielo y permafrost en ambiente árido y de gran altitud: análogo de depósitos de hielo y recursos hídricos.', m: [3, 4, 6, 9, 5, 5, 2], l: [2, 4, 6, 6, 2, 1, 1], f: '5 000–6 500 m · glaciares tropicales en retroceso', r: { mars: 2, moon: 0 } },
+          { n: 'Torotoro (karst y cuevas)', id: 'torotoro', analogKey: 'dali-mars', ll: [-18.13, -65.77], d: 'Entorno subterráneo estable con cuevas, útil para estudiar operaciones en el subsuelo.', m: [3, 3, 2, 2, 2, 3, 6], l: [2, 3, 2, 1, 1, 1, 4], f: 'Karst en caliza; no es tubo de lava', r: { mars: 2, moon: 2 } },
+          { n: 'Estructura de Iturralde', id: 'iturralde', analogKey: 'dali-mars', ll: [-12.6, -67.7], d: 'Posible cráter de impacto en la Amazonía, aún debatido. Comparable en morfología, pero con clima y cobertura muy distintos.', m: [4, 4, 1, 1, 1, 2, 2], l: [5, 4, 1, 1, 1, 1, 2], f: '~8 km · selva · origen en discusión', r: { mars: 2, moon: 2 } }
+        ];
+        const boliviaRefs = {
+          mars: [['Cráter Jezero', 18.4, 77.5, 'jezero'], ['Cráter Gale', -5.4, 137.8, 'gale'], ['Oxia Planum', 17.2, -24.6, 'oxia']],
+          moon: [['Shackleton (polo sur)', -89.9, 0, 'shackleton'], ['Malapert', -86, 0, 'malapert'], ['Apolo 11 (Mar de la Tranquilidad)', 0.67, 23.47, 'apolo11']]
+        };
+
+        const analogComparisons = [
+          {
+            id: 'uyuni-moon',
+            earthImg: 'https://images.unsplash.com/photo-1518182170546-07661fd94144?auto=format&fit=crop&w=1000&q=80',
+            marsImg: 'https://www.solarsystemscope.com/textures/download/2k_mars.jpg',
+            moonImg: 'https://www.solarsystemscope.com/textures/download/2k_moon.jpg',
+            fallbackTelemetry: { porosityPct: 38, soilMoisture: '0.09 m³/m³', soilTempC: 8.4, uvIndex: '14.2' },
+            governingFeatures: [
+              { feature: 'Planicie Hiper-Plana (< 0.05°)', spaceOrigin: 'Terrazas LRO LOLA Polo Sur Lunar', earthMatch: 'Variación < 1 m en 10,582 km² de halita', matchPct: 96 },
+              { feature: 'Porosidad Granular Superficial', spaceOrigin: 'Regolito lunar (43%–52%)', earthMatch: 'Costra evaporítica cristalina (32%–41%)', matchPct: 90 },
+              { feature: 'Reflectancia y Albedo Polar', spaceOrigin: 'Iluminación rasante en Shackleton', earthMatch: 'Alto albedo salino (0.68–0.75)', matchPct: 91 },
+              { feature: 'Ausencia Total de Vegetación', spaceOrigin: 'Superficie abiótica estéril', earthMatch: 'Desierto salino continuo sin obstáculos', matchPct: 95 }
+            ]
+          },
+          {
+            id: 'dali-mars',
+            earthImg: 'https://images.unsplash.com/photo-1547234935-80c7145ec969?auto=format&fit=crop&w=1000&q=80',
+            marsImg: 'https://www.solarsystemscope.com/textures/download/2k_mars.jpg',
+            moonImg: 'https://www.solarsystemscope.com/textures/download/2k_moon.jpg',
+            fallbackTelemetry: { porosityPct: 43, soilMoisture: '0.06 m³/m³', soilTempC: 4.1, uvIndex: '15.6' },
+            governingFeatures: [
+              { feature: 'Mineralogía de Óxidos y Sulfatos', spaceOrigin: 'Hematita y esmectitas en Jezero (CRISM)', earthMatch: 'Cuenca evaporítica rica en Fe³⁺ y yeso', matchPct: 96 },
+              { feature: 'Porosidad e Inercia Térmica', spaceOrigin: 'Regolito basáltico marciano (35%–48%)', earthMatch: 'Grava piroclástica y limo salino (38%–47%)', matchPct: 94 },
+              { feature: 'Pendiente Segura de Descenso', spaceOrigin: 'Piso sedimentario de Jezero (1.8°–5°)', earthMatch: 'Llanura piroclástica Sud Lípez (2.4°–4.5°)', matchPct: 95 },
+              { feature: 'Hidratación Mineral (ISRU)', spaceOrigin: 'Agua ligada en arcillas hidratadas', earthMatch: 'Extracción térmica de H₂O desde yeso', matchPct: 92 }
+            ]
+          },
+          {
+            id: 'licancabur-dual',
+            earthImg: 'https://images.unsplash.com/photo-1589802829985-817e51171b92?auto=format&fit=crop&w=1000&q=80',
+            marsImg: 'https://www.solarsystemscope.com/textures/download/2k_mars.jpg',
+            moonImg: 'https://www.solarsystemscope.com/textures/download/2k_moon.jpg',
+            fallbackTelemetry: { porosityPct: 45, soilMoisture: '0.05 m³/m³', soilTempC: -2.8, uvIndex: '16.8' },
+            governingFeatures: [
+              { feature: 'Ceniza Piroclástica sin Materia Orgánica', spaceOrigin: 'Regolito basáltico-andesítico', earthMatch: 'Depósitos piroclásticos ricos en silicatos', matchPct: 91 },
+              { feature: 'Presión Reducida y Radiación UV', spaceOrigin: 'Atmósfera tenue marciana', earthMatch: 'Presión 480 mbar y radiación UV +40%', matchPct: 93 },
+              { feature: 'Porosidad de Escoria Volcánica', spaceOrigin: 'Regolito vesicular (40%–50%)', earthMatch: 'Ceniza y escoria no consolidada (41%–49%)', matchPct: 92 },
+              { feature: 'Pendientes de Borde de Cráter', spaceOrigin: 'Paredes escarpadas lunares (> 18°)', earthMatch: 'Laderas volcánicas para prueba de rovers', matchPct: 84 }
+            ]
+          }
+        ];
+
+        const selectedAnalogId = ref('uyuni-moon');
+        const comparisonSlider = ref(50);
+        const imageCompareView = ref('slider');
+        const customLat = ref(-20.13);
+        const customLon = ref(-67.49);
+
+        const activeAnalog = computed(
+          () => analogComparisons.find((a) => a.id === selectedAnalogId.value) || analogComparisons[0]
+        );
+
+        const liveTelemetry = reactive({
+          loading: false,
+          porosityPct: 38,
+          soilMoisture: '0.09 m³/m³',
+          soilTempC: 8.4,
+          uvIndex: '14.2',
+          sourceStatus: 'NASA POWER + SoilGrids ISRIC (Calibrado)'
+        });
+
+        const liveIsapScore = computed(() => {
+          const targetPorosity = globeTarget.value === 'mars' ? 42 : 46;
+          const diff = Math.abs(liveTelemetry.porosityPct - targetPorosity);
+          return Math.max(76, Math.min(98, Math.round(97 - diff * 1.4)));
+        });
+
+        const fetchLiveEarthTelemetry = async (lat, lon, fallback) => {
+          liveTelemetry.loading = true;
+          try {
+            const [powerRes, soilRes] = await Promise.allSettled([
+              fetch(
+                `https://power.larc.nasa.gov/api/temporal/climatology/point?parameters=GWETTOP,TS,ALLSKY_SFC_UV_INDEX&community=RE&longitude=${lon}&latitude=${lat}&format=JSON`
+              ).then((r) => r.json()),
+              fetch(
+                `https://rest.isric.org/soilgrids/v2.0/properties/query?lon=${lon}&lat=${lat}&property=bdod&depth=0-5cm&value=mean`
+              ).then((r) => r.json())
+            ]);
+
+            if (powerRes.status === 'fulfilled' && powerRes.value?.properties?.parameter) {
+              const p = powerRes.value.properties.parameter;
+              if (p.GWETTOP?.ANN !== undefined) liveTelemetry.soilMoisture = `${Number(p.GWETTOP.ANN).toFixed(2)} m³/m³`;
+              if (p.TS?.ANN !== undefined) liveTelemetry.soilTempC = Number(p.TS.ANN).toFixed(1);
+              if (p.ALLSKY_SFC_UV_INDEX?.ANN !== undefined) liveTelemetry.uvIndex = Number(p.ALLSKY_SFC_UV_INDEX.ANN).toFixed(1);
+              liveTelemetry.sourceStatus = 'NASA POWER API (En Vivo)';
+            } else if (fallback) {
+              liveTelemetry.soilMoisture = fallback.soilMoisture;
+              liveTelemetry.soilTempC = fallback.soilTempC;
+              liveTelemetry.uvIndex = fallback.uvIndex;
+            }
+
+            const bdodVal =
+              soilRes.status === 'fulfilled'
+                ? soilRes.value?.properties?.layers?.[0]?.depths?.[0]?.values?.mean
+                : null;
+            if (bdodVal) {
+              const bulkDensity = bdodVal / 100;
+              liveTelemetry.porosityPct = Math.max(25, Math.min(58, Math.round((1 - bulkDensity / 2.65) * 100)));
+              liveTelemetry.sourceStatus = 'NASA POWER + SoilGrids REST (En Vivo)';
+            } else if (fallback) {
+              liveTelemetry.porosityPct = fallback.porosityPct;
+            }
+          } catch {
+            if (fallback) {
+              Object.assign(liveTelemetry, fallback);
+            }
+          } finally {
+            liveTelemetry.loading = false;
+          }
+        };
+
+        const runCustomCoordinateScan = () => {
+          fetchLiveEarthTelemetry(customLat.value, customLon.value, activeAnalog.value.fallbackTelemetry);
+        };
+
+        const handleImageFallback = (e, kind) => {
+          e.target.onerror = null;
+          e.target.src =
+            kind === 'earth'
+              ? planetaryBodies.earth.url2k
+              : kind === 'mars'
+              ? planetaryBodies.mars.url2k
+              : planetaryBodies.moon.url2k;
+        };
+
+        const boliviaMissions = {
+          'Aterrizaje': [1, 4, 1, 0, 2, 0, 0],
+          'Búsqueda de vida': [2, 0, 1, 3, 1, 4, 1],
+          'Base y recursos': [2, 2, 2, 4, 0, 0, 2],
+          'Pruebas de rover': [2, 4, 1, 0, 3, 0, 0]
+        };
+        const boliviaGaps = {
+          mars: [
+            'Gravedad: 0,38 g en Marte frente a 1 g en la Tierra.',
+            'Presión: unos 6 mbar en Marte; Bolivia a 4 000 m aún tiene unos 600 mbar.',
+            'Atmósfera: CO₂ en Marte frente a N₂/O₂ en la Tierra.',
+            'Radiación: el campo magnético y la atmósfera terrestres atenúan mucho más.',
+            'Suelos con percloratos y alteración acuosa antigua no se replican igual.'
+          ],
+          moon: [
+            'No hay regolito lunar ni vacío: el polvo lunar es angular y abrasivo.',
+            'Gravedad: 0,17 g frente a 1 g.',
+            'Temperaturas de −170 °C a +120 °C, con regiones permanentemente sombreadas.',
+            'Radiación solar y cósmica sin protección atmosférica.',
+            'Para la Luna, Bolivia sirve sobre todo para terreno, pendiente y logística.'
+          ]
+        };
+        const boliviaTempExtremes = {
+          uyuni: [17, -8], colorada: [12, -15], puna: [12, -15], licancabur: [-8, -33], sajama: [2, -18], torotoro: [27, 12], iturralde: [32, 22],
+          jezero: [-3, -93], gale: [-5, -90], oxia: [-3, -93], shackleton: [-183, -178], malapert: [-40, -110], apolo11: [117, -173]
+        };
+        const boliviaHourlyProfiles = {
+          uyuni: { perfil: [3.1, 2.5, 2.0, 1.6, 1.3, 1.4, 3.2, 6.3, 9.6, 12.5, 14.8, 16.4, 17.5, 17.9, 17.8, 16.8, 14.5, 11.3, 9.2, 7.8, 6.5, 5.3, 4.5, 3.8, 3.1], min_abs: -6.2, max_abs: 24.6 },
+          colorada: { perfil: [-2.2, -2.5, -2.7, -2.8, -2.9, -2.4, 0.6, 4.8, 8.2, 10.6, 12.3, 13.4, 13.8, 13.6, 12.6, 10.8, 7.8, 4.1, 2.0, 0.7, -0.2, -1.0, -1.5, -1.9, -2.2], min_abs: -12.6, max_abs: 20.8 },
+          puna: { perfil: [0.9, 0.5, 0.3, 0.1, 0.0, 0.3, 2.7, 6.7, 10.2, 12.9, 14.7, 15.9, 16.4, 16.2, 15.2, 13.4, 10.4, 7.0, 5.0, 3.9, 3.1, 2.4, 1.8, 1.3, 0.9], min_abs: -7.4, max_abs: 24.0 },
+          licancabur: { perfil: [9.2, 9.0, 8.7, 8.3, 7.8, 8.0, 11.1, 15.5, 19.0, 21.4, 23.1, 24.2, 24.7, 24.7, 24.0, 22.6, 19.8, 16.3, 14.1, 12.6, 11.2, 10.2, 9.6, 9.3, 9.2], min_abs: -2.8, max_abs: 32.5 },
+          sajama: { perfil: [2.1, 1.7, 1.3, 1.1, 0.9, 1.0, 3.1, 7.1, 10.7, 13.4, 15.3, 16.5, 17.2, 17.3, 16.7, 15.5, 13.1, 9.6, 7.4, 6.0, 4.8, 3.9, 3.2, 2.6, 2.1], min_abs: -5.8, max_abs: 24.3 },
+          torotoro: { perfil: [10.4, 10.0, 9.6, 9.2, 8.8, 9.0, 11.4, 14.9, 18.1, 20.6, 22.3, 23.3, 23.6, 23.2, 22.1, 20.4, 17.7, 14.9, 13.4, 12.6, 12.1, 11.6, 11.2, 10.8, 10.4], min_abs: -0.6, max_abs: 31.1 },
+          iturralde: { perfil: [23.8, 23.6, 23.3, 23.1, 22.9, 22.7, 23.5, 25.2, 27.0, 28.5, 29.6, 30.3, 30.6, 30.6, 30.3, 29.8, 28.9, 27.6, 26.5, 25.8, 25.3, 24.9, 24.5, 24.2, 23.8], min_abs: 10.1, max_abs: 41.5 }
+        };
+        const boliviaDemStats = {
+          uyuni: { relieve_m: 3.9, pendiente_rms_deg: 0.08, pendiente_p95_deg: 0.15, altitud_media_m: 3659.4, amp: 4, freq: 2, ridged: false, craters: 0, pal: [[0.92, 0.92, 0.88], [0.8, 0.78, 0.7]] },
+          colorada: { relieve_m: 1221.0, pendiente_rms_deg: 11.35, pendiente_p95_deg: 23.48, altitud_media_m: 4556.4, amp: 0.22, freq: 3, ridged: false, craters: 0, pal: [[0.5, 0.36, 0.22], [0.85, 0.75, 0.6]] },
+          puna: { relieve_m: 1353.7, pendiente_rms_deg: 10.07, pendiente_p95_deg: 19.39, altitud_media_m: 4557.4, amp: 0.45, freq: 2.5, ridged: true, craters: 0, pal: [[0.5, 0.36, 0.22], [0.85, 0.75, 0.6]] },
+          licancabur: { relieve_m: 2061.7, pendiente_rms_deg: 11.85, pendiente_p95_deg: 25.29, altitud_media_m: 4346.4, amp: 0.78, freq: 2, ridged: true, craters: 0, pal: [[0.5, 0.36, 0.22], [0.85, 0.75, 0.6]] },
+          sajama: { relieve_m: 1508.5, pendiente_rms_deg: 13.98, pendiente_p95_deg: 24.12, altitud_media_m: 2748.5, amp: 0.72, freq: 2.2, ridged: true, craters: 0, pal: [[0.85, 0.9, 1.0], [0.5, 0.55, 0.66]] },
+          torotoro: { relieve_m: 288.7, pendiente_rms_deg: 2.49, pendiente_p95_deg: 5.19, altitud_media_m: -2551.9, amp: 0.35, freq: 4, ridged: true, craters: 0, pal: [[0.3, 0.42, 0.25], [0.7, 0.65, 0.5]] },
+          iturralde: { relieve_m: 29.7, pendiente_rms_deg: 0.59, pendiente_p95_deg: 1.19, altitud_media_m: 180.5, amp: 0.12, freq: 3, ridged: false, craters: 1, pal: [[0.3, 0.42, 0.25], [0.7, 0.65, 0.5]] },
+          jezero: { relieve_m: 492.4, pendiente_rms_deg: 2.51, pendiente_p95_deg: 4.5, altitud_media_m: -2775.2, amp: 0.16, freq: 3, ridged: false, craters: 2, pal: [[0.42, 0.18, 0.09], [0.82, 0.46, 0.26]] },
+          gale: { relieve_m: 3653.7, pendiente_rms_deg: 15.3, pendiente_p95_deg: 28.82, altitud_media_m: -1646.8, amp: 0.55, freq: 2, ridged: false, craters: 1, pal: [[0.42, 0.18, 0.09], [0.82, 0.46, 0.26]] },
+          oxia: { relieve_m: 243.2, pendiente_rms_deg: 1.45, pendiente_p95_deg: 1.93, altitud_media_m: -1914.9, amp: 0.08, freq: 3, ridged: false, craters: 0, pal: [[0.42, 0.18, 0.09], [0.82, 0.46, 0.26]] },
+          shackleton: null,
+          malapert: null,
+          apolo11: { relieve_m: 243.2, pendiente_rms_deg: 1.45, pendiente_p95_deg: 1.93, altitud_media_m: -1914.9, amp: 0.06, freq: 3, ridged: false, craters: 5, pal: [[0.33, 0.33, 0.35], [0.76, 0.76, 0.79]] }
+        };
+
+        const boliviaSiteIdx = ref(0);
+        const atlasMission = ref('Aterrizaje');
+        const terrainStageRef = ref(null);
+        const tempChartSvgRef = ref(null);
+        const radarSvgRef = ref(null);
+        const terrainVex = ref(1);
+        const terrainSunEl = ref(70);
+        const terrainClockRaw = ref(500);
+        const terrainClockLabel = ref('12:00 (día)');
+        const terrainClockTempText = ref('');
+        const terrainPlaying = ref(true);
+        const terrainDaySpeed = ref(30);
+        const gravityDropInfo = ref('');
+        const tempChartSummaryHtml = ref('');
+
+        let terrainCtx = null;
+        let terrainAnimId = null;
+        let terrainClockFrac = 0.5;
+        let terrainLastTime = performance.now();
+        let tempCurveA = null;
+        let tempCurveB = null;
+        let tempScaleFn = null;
+        let gravityDropStart = 0;
+
+        const currentBoliviaSite = computed(() => boliviaSites[boliviaSiteIdx.value] || boliviaSites[0]);
+        const currentBoliviaRef = computed(() => {
+          const refIdx = currentBoliviaSite.value.r[globeTarget.value] || 0;
+          return boliviaRefs[globeTarget.value][refIdx];
+        });
+
+        const getSiteDimArray = (site) => {
+          const arr = (globeTarget.value === 'mars' ? site.m : site.l).slice();
+          const ra = boliviaDemStats[site.id];
+          const refId = boliviaRefs[globeTarget.value][site.r[globeTarget.value]][3];
+          const rb = boliviaDemStats[refId];
+          if (ra && rb) {
+            const x = ra.pendiente_rms_deg;
+            const y = rb.pendiente_rms_deg;
+            arr[1] = (atlasMission.value === 'Aterrizaje' || atlasMission.value === 'Pruebas de rover') && x <= y
+              ? 10
+              : Math.round((Math.min(x, y) / Math.max(x, y)) * 100) / 10;
+          }
+          return arr;
+        };
+
+        const boliviaRanking = computed(() => {
+          const w = boliviaMissions[atlasMission.value];
+          const totalW = w.reduce((a, b) => a + b, 0);
+          return boliviaSites
+            .map((site, idx) => {
+              const vals = getSiteDimArray(site);
+              const score = vals.reduce((acc, v, i) => acc + v * w[i], 0) / totalW;
+              return { idx, site, score };
+            })
+            .sort((a, b) => b.score - a.score);
+        });
+
+        const terrainStatsTable = computed(() => {
+          const ra = boliviaDemStats[currentBoliviaSite.value.id];
+          const rb = boliviaDemStats[currentBoliviaRef.value[3]];
+          const fmt = (o, k, u) => (o ? o[k].toLocaleString('es') + u : 's/d');
+          const sim = ra && rb
+            ? ((Math.min(ra.pendiente_rms_deg, rb.pendiente_rms_deg) / Math.max(ra.pendiente_rms_deg, rb.pendiente_rms_deg)) * 10).toFixed(1) + ' / 10'
+            : 's/d';
+          return {
+            altA: fmt(ra, 'altitud_media_m', ' m'),
+            altB: fmt(rb, 'altitud_media_m', ' m'),
+            relA: fmt(ra, 'relieve_m', ' m'),
+            relB: fmt(rb, 'relieve_m', ' m'),
+            rmsA: fmt(ra, 'pendiente_rms_deg', '°'),
+            rmsB: fmt(rb, 'pendiente_rms_deg', '°'),
+            p95A: fmt(ra, 'pendiente_p95_deg', '°'),
+            p95B: fmt(rb, 'pendiente_p95_deg', '°'),
+            sim,
+            note: rb
+              ? `Datos reales (parche de 20 km, exageración vertical ${terrainVex.value}x). Las altitudes medias usan el nivel de referencia de cada cuerpo.`
+              : `${currentBoliviaRef.value[0]}: relieve esquemático de referencia polar.`
+          };
+        });
+
+        // ====================================================================
+        // THREE.JS: ESCENARIO DUAL DE GLOBOS (TIERRA VS MARTE / LUNA CORREGIDO)
+        // ====================================================================
+        const updateDualGlobesSelection = () => {
+          if (!threeCtx) return;
+          const { earth, bodies, ll2v } = threeCtx;
+          bodies.mars.scale.visible = globeTarget.value === 'mars';
+          bodies.moon.scale.visible = globeTarget.value === 'moon';
+
+          const S = currentBoliviaSite.value;
+          const refIdx = S.r[globeTarget.value] || 0;
+          const ref = boliviaRefs[globeTarget.value][refIdx];
+          const sz = globeTarget.value === 'mars' ? 0.53 : 0.27;
+          bodies[globeTarget.value].tgtScale = globeRealScale.value ? sz : 1;
+
+          const faceTarget = (w, lat, lon) => {
+            const v = ll2v(lat, lon, 1);
+            w.tgt.s = Math.atan2(-v.x, v.z);
+            w.tgt.t = Math.max(-1.25, Math.min(1.25, (lat * Math.PI) / 180));
+          };
+          faceTarget(earth, S.ll[0], S.ll[1]);
+          faceTarget(bodies[globeTarget.value], ref[1], ref[2]);
+
+          earth.markers.forEach((m, i) => {
+            m.material.color.set(i === boliviaSiteIdx.value ? 0xff3b3b : 0xffd54a);
+            m.scale.setScalar(i === boliviaSiteIdx.value ? 1.65 : 1);
+          });
+          bodies[globeTarget.value].markers.forEach((m, i) => {
+            m.material.color.set(i === refIdx ? 0xff3b3b : 0xffd54a);
+            m.scale.setScalar(i === refIdx ? 1.65 : 1);
+          });
+
+          const putRing = (w, idx) => {
+            const pos = w.markers[idx].position;
+            w.ring.position.copy(pos).multiplyScalar(1.004);
+            w.ring.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), pos.clone().normalize());
+          };
+          putRing(earth, boliviaSiteIdx.value);
+          putRing(bodies[globeTarget.value], refIdx);
+        };
+
+        const refocusDualGlobes = () => {
+          globeAutoRotate.value = false;
+          updateDualGlobesSelection();
+        };
+
+        const initDualGlobesScene = () => {
+          const stage = dualGlobeStage.value;
+          if (!stage || typeof THREE === 'undefined') return;
+          if (threeAnimId) cancelAnimationFrame(threeAnimId);
+          stage.querySelectorAll('canvas').forEach((c) => c.remove());
+
+          let sd = 13;
+          const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+          const hash = (x, y) => {
+            const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+            return h - Math.floor(h);
+          };
+          const vn = (x, y) => {
+            const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+            const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+            return hash(xi, yi) * (1 - u) * (1 - v) + hash(xi + 1, yi) * u * (1 - v) + hash(xi, yi + 1) * (1 - u) * v + hash(xi + 1, yi + 1) * u * v;
+          };
+          const fbm = (x, y) => {
+            let s = 0, a = 0.5;
+            for (let i = 0; i < 5; i++) {
+              s += a * vn(x, y);
+              x *= 2;
+              y *= 2;
+              a /= 2;
+            }
+            return s;
+          };
+          const mkTex = (draw, isAlpha = false) => {
+            const c = document.createElement('canvas');
+            c.width = 1024;
+            c.height = 512;
+            const g = c.getContext('2d');
+            draw(g, 1024, 512);
+            const t = new THREE.CanvasTexture(c);
+            if (!isAlpha) t.encoding = THREE.sRGBEncoding;
+            t.anisotropy = 8;
+            return t;
+          };
+          const px = (lon, lat, W = 1024, H = 512) => [((lon + 180) / 360) * W, ((90 - lat) / 180) * H];
+          const noiseFill = (g, W, H, f) => {
+            const im = g.getImageData(0, 0, W, H), d = im.data;
+            for (let y = 0; y < H; y++) {
+              for (let x = 0; x < W; x++) {
+                const n = fbm(x / 75, y / 75), c = f(n, x, y), i = (y * W + x) * 4;
+                d[i] = c[0];
+                d[i + 1] = c[1];
+                d[i + 2] = c[2];
+                d[i + 3] = 255;
+              }
+            }
+            g.putImageData(im, 0, 0);
+          };
+          const poly = (g, pts, col) => {
+            g.beginPath();
+            pts.forEach((p, i) => {
+              const [x, y] = px(p[0], p[1]);
+              i ? g.lineTo(x, y) : g.moveTo(x, y);
+            });
+            g.closePath();
+            g.fillStyle = col;
+            g.fill();
+          };
+          const shade = (g, W, H, k) => {
+            const im = g.getImageData(0, 0, W, H), d = im.data;
+            for (let y = 0; y < H; y++) {
+              for (let x = 0; x < W; x++) {
+                const m = 0.76 + k * fbm(x / 16 + 50, y / 16), i = (y * W + x) * 4;
+                d[i] *= m;
+                d[i + 1] *= m;
+                d[i + 2] *= m;
+              }
+            }
+            g.putImageData(im, 0, 0);
+          };
+
+          // Textura fotorrealista estilo Golden Blue Marble (2da imagen) para el globo 3D de la Tierra
+          const fallbackEarthCanvas = buildBlueMarbleCanvas(1024, 512);
+          const fallbackEarthTex = new THREE.CanvasTexture(fallbackEarthCanvas);
+          fallbackEarthTex.encoding = THREE.sRGBEncoding;
+          fallbackEarthTex.anisotropy = 8;
+
+          const fallbackMarsTex = mkTex((g, W, H) => {
+            noiseFill(g, W, H, (n, x, y) => {
+              const k = fbm(x / 130 + 9, y / 100 + 3), d = k > 0.52 ? (k - 0.52) * 2.2 : 0;
+              return [(175 + n * 80) * (1 - d * 0.52), (82 + n * 48) * (1 - d * 0.48), (46 + n * 30) * (1 - d * 0.42)];
+            });
+            for (let i = 0; i < 95; i++) {
+              const x = rnd() * W, y = 30 + rnd() * (H - 60), r = 4 + rnd() * rnd() * 26;
+              const gr = g.createRadialGradient(x, y, r * 0.45, x, y, r);
+              gr.addColorStop(0, 'rgba(65,25,14,.45)');
+              gr.addColorStop(0.85, 'rgba(90,38,20,.2)');
+              gr.addColorStop(1, 'rgba(255,195,155,.32)');
+              g.fillStyle = gr;
+              g.beginPath();
+              g.arc(x, y, r, 0, Math.PI * 2);
+              g.fill();
+            }
+            shade(g, W, H, 0.38);
+          });
+
+          const fallbackMoonTex = mkTex((g, W, H) => {
+            noiseFill(g, W, H, (n, x, y) => {
+              const m = fbm(x / 140 + 3, y / 110 + 7);
+              const maria = m > 0.52 ? 1 - (m - 0.52) * 2.8 : 1;
+              const base = (115 + n * 95) * Math.max(0.48, maria);
+              return [base, base, base + 5];
+            });
+            for (let i = 0; i < 340; i++) {
+              const x = rnd() * W, y = rnd() * H, r = 3 + rnd() * rnd() * 44;
+              const gr = g.createRadialGradient(x, y, r * 0.55, x, y, r);
+              gr.addColorStop(0, 'rgba(28,30,36,.62)');
+              gr.addColorStop(0.82, 'rgba(42,45,52,.28)');
+              gr.addColorStop(0.94, 'rgba(240,244,248,.48)');
+              gr.addColorStop(1, 'rgba(240,244,248,0)');
+              g.fillStyle = gr;
+              g.beginPath();
+              g.arc(x, y, r, 0, Math.PI * 2);
+              g.fill();
+            }
+            shade(g, W, H, 0.35);
+          });
+
+          // Mapa de relieve (bumpMap) para cráteres lunares y cordillera andina
+          const createBumpMap = (cratersCount) =>
+            mkTex((g, W, H) => {
+              noiseFill(g, W, H, (n) => {
+                const v = Math.min(255, Math.max(0, n * 240));
+                return [v, v, v];
+              });
+              for (let i = 0; i < cratersCount; i++) {
+                const x = rnd() * W, y = rnd() * H, r = 4 + rnd() * rnd() * 45;
+                const gr = g.createRadialGradient(x, y, r * 0.45, x, y, r * 1.15);
+                gr.addColorStop(0, 'rgba(0,0,0,0.65)');
+                gr.addColorStop(0.82, 'rgba(0,0,0,0.25)');
+                gr.addColorStop(0.93, 'rgba(255,255,255,0.75)');
+                gr.addColorStop(1, 'rgba(255,255,255,0)');
+                g.fillStyle = gr;
+                g.beginPath();
+                g.arc(x, y, r * 1.15, 0, Math.PI * 2);
+                g.fill();
+              }
+            }, true);
+
+          const R = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+          R.outputEncoding = THREE.sRGBEncoding;
+          R.toneMapping = THREE.ACESFilmicToneMapping;
+          R.toneMappingExposure = 1.28;
+          R.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+          stage.appendChild(R.domElement);
+
+          const scene = new THREE.Scene();
+          const cam = new THREE.PerspectiveCamera(38, 1, 0.1, 50);
+          // Iluminación ambiental equilibrada y luz solar frontal-lateral como en la foto de referencia
+          scene.add(new THREE.AmbientLight(0xffffff, 0.68));
+          const sunDir = new THREE.Vector3(1.6, 1.1, 4.8).normalize();
+          const sun = new THREE.DirectionalLight(0xffffff, 1.55);
+          sun.position.copy(sunDir).multiplyScalar(7);
+          scene.add(sun);
+
+          const ll2v = (lat, lon, r) => {
+            const p = ((90 - lat) * Math.PI) / 180;
+            const t = ((lon + 180) * Math.PI) / 180;
+            return new THREE.Vector3(-r * Math.sin(p) * Math.cos(t), r * Math.cos(p), r * Math.sin(p) * Math.sin(t));
+          };
+
+          // Atmósfera fina y realista en el borde de la Tierra (sin el resplandor exagerado de la 1ra imagen)
+          const addAtmosphereHalo = (pivot, hexColor, radius, power) => {
+            const atmoMesh = new THREE.Mesh(
+              new THREE.SphereGeometry(radius, 96, 72),
+              new THREE.ShaderMaterial({
+                uniforms: {
+                  c: { value: new THREE.Color(hexColor) },
+                  sunVec: { value: sunDir }
+                },
+                vertexShader:
+                  'varying vec3 vNormal;varying vec3 vWorldNormal;void main(){vNormal=normalize(normalMatrix*normal);vWorldNormal=normalize(mat3(modelMatrix)*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+                fragmentShader: `uniform vec3 c;uniform vec3 sunVec;varying vec3 vNormal;varying vec3 vWorldNormal;void main(){float rim=pow(max(0.,.66-dot(vNormal,vec3(0.,0.,1.))),${power});float sunFactor=smoothstep(-0.35,0.65,dot(vWorldNormal,sunVec));float intensity=rim*(0.32+0.52*sunFactor);gl_FragColor=vec4(c*intensity*1.2,intensity*0.78);}`,
+                side: THREE.BackSide,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                depthWrite: false
+              })
+            );
+            pivot.add(atmoMesh);
+          };
+
+          // Mapa de rugosidad suave para evitar manchas blancas deslumbrantes en el océano
+          const createEarthRoughnessMap = () =>
+            mkTex((g, W, H) => {
+              const src = fallbackEarthTex.image.getContext('2d').getImageData(0, 0, W, H).data;
+              const out = g.createImageData(W, H);
+              for (let i = 0; i < src.length; i += 4) {
+                const isOcean = src[i + 2] > src[i] * 1.15 && src[i + 2] > src[i + 1] * 1.05;
+                const val = isOcean ? 145 : 238;
+                out.data[i] = out.data[i + 1] = out.data[i + 2] = val;
+                out.data[i + 3] = 255;
+              }
+              g.putImageData(out, 0, 0);
+            }, true);
+
+          const mkWorld = (x, fallbackMap, bumpMap, bumpScale, realTexUrls, axialTiltDeg = 0, roughMap = null, isEarth = false) => {
+            const pivot = new THREE.Group(), spin = new THREE.Group(), scale = new THREE.Group();
+            pivot.position.x = x;
+            pivot.rotation.z = (axialTiltDeg * Math.PI) / 180;
+            const mat = new THREE.MeshStandardMaterial({
+              map: fallbackMap,
+              bumpMap,
+              bumpScale,
+              roughnessMap: roughMap,
+              roughness: roughMap ? 0.92 : 0.88,
+              metalness: 0.02
+            });
+            const mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 72), mat);
+            spin.add(mesh);
+            scale.add(pivot);
+            pivot.add(spin);
+            scene.add(scale);
+
+            // Cargar textura satelital real desde CDN con CORS habilitado y aplicar matiz dorado realista
+            const urls = Array.isArray(realTexUrls) ? realTexUrls : [realTexUrls].filter(Boolean);
+            const tryLoadUrl = (idx) => {
+              if (idx >= urls.length) return;
+              const img = new Image();
+              img.crossOrigin = 'anonymous';
+              img.onload = () => {
+                try {
+                  const c = document.createElement('canvas');
+                  c.width = 2048;
+                  c.height = 1024;
+                  const ctx = c.getContext('2d');
+                  ctx.drawImage(img, 0, 0, c.width, c.height);
+                  if (isEarth) enhanceGoldenRealisticEarth(c, c.width, c.height);
+                  const tex = new THREE.CanvasTexture(c);
+                  tex.encoding = THREE.sRGBEncoding;
+                  tex.anisotropy = 8;
+                  mat.map = tex;
+                  mat.needsUpdate = true;
+                } catch {
+                  tryLoadUrl(idx + 1);
+                }
+              };
+              img.onerror = () => tryLoadUrl(idx + 1);
+              img.src = urls[idx];
+            };
+            tryLoadUrl(0);
+
+            const ring = new THREE.Mesh(
+              new THREE.RingGeometry(0.048, 0.066, 48),
+              new THREE.MeshBasicMaterial({ color: 0xff3b3b, transparent: true, side: THREE.DoubleSide, depthWrite: false })
+            );
+            spin.add(ring);
+            return { pivot, spin, scale, cur: { s: 0, t: 0 }, tgt: { s: 0, t: 0 }, markers: [], ring, tgtScale: 1 };
+          };
+
+          const earth = mkWorld(
+            -1.28,
+            fallbackEarthTex,
+            createBumpMap(0),
+            0.024,
+            [
+              'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg',
+              planetaryBodies.earth.url2k
+            ],
+            14.0,
+            createEarthRoughnessMap(),
+            true
+          );
+          addAtmosphereHalo(earth.pivot, 0x5ab4ff, 1.055, '3.6');
+
+          // Capa de nubes reales de alta resolución con respaldo procedural
+          const cloudTex = mkTex((g, W, H) => {
+            const im = g.getImageData(0, 0, W, H), d = im.data;
+            for (let y = 0; y < H; y++) {
+              for (let x = 0; x < W; x++) {
+                const swirl = fbm(x / 85 + 12, y / 55 + 8) * 0.65 + fbm(x / 32, y / 28) * 0.35;
+                const a = Math.max(0, swirl - 0.54) * 3.8;
+                const i = (y * W + x) * 4;
+                d[i] = d[i + 1] = d[i + 2] = 255;
+                d[i + 3] = Math.min(185, a * 255);
+              }
+            }
+            g.putImageData(im, 0, 0);
+          });
+          const cloudsMat = new THREE.MeshStandardMaterial({
+            map: cloudTex,
+            transparent: true,
+            depthWrite: false,
+            roughness: 1,
+            opacity: 0.72,
+            blending: THREE.AdditiveBlending
+          });
+          const cloudsLoader = new THREE.TextureLoader();
+          cloudsLoader.setCrossOrigin('anonymous');
+          cloudsLoader.load(
+            'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png',
+            (loadedClouds) => {
+              loadedClouds.encoding = THREE.sRGBEncoding;
+              cloudsMat.map = loadedClouds;
+              cloudsMat.blending = THREE.NormalBlending;
+              cloudsMat.opacity = 0.82;
+              cloudsMat.needsUpdate = true;
+            }
+          );
+          const cloudsMesh = new THREE.Mesh(new THREE.SphereGeometry(1.008, 72, 54), cloudsMat);
+          earth.spin.add(cloudsMesh);
+
+          const bodies = {
+            mars: mkWorld(1.28, fallbackMarsTex, createBumpMap(95), 0.065, [planetaryBodies.mars.url2k], 25.19),
+            moon: mkWorld(
+              1.28,
+              fallbackMoonTex,
+              createBumpMap(240),
+              0.075,
+              [
+                'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg',
+                planetaryBodies.moon.url2k
+              ],
+              6.68
+            )
+          };
+
+          // Marcador especial enfocado en Bolivia (Sud Lípez / Altiplano)
+          const addMarker = (w, lat, lon, idx, name, bodyName, isBoliviaFocus = false) => {
+            const m = new THREE.Mesh(
+              new THREE.SphereGeometry(isBoliviaFocus ? 0.052 : 0.038, 20, 16),
+              new THREE.MeshBasicMaterial({ color: isBoliviaFocus ? 0xf59e0b : 0xffd54a })
+            );
+            m.position.copy(ll2v(lat, lon, 1.018));
+            m.userData = { i: idx, name, bodyName };
+            w.spin.add(m);
+            w.markers.push(m);
+          };
+          boliviaSites.forEach((s, i) => addMarker(earth, s.ll[0], s.ll[1], i, s.n, 'Tierra • Bolivia (Foco Análogo)', i === 0));
+          ['mars', 'moon'].forEach((k) =>
+            boliviaRefs[k].forEach((r, i) => addMarker(bodies[k], r[1], r[2], i, r[0], k === 'mars' ? 'Marte' : 'La Luna'))
+          );
+
+          // Doble capa de estrellas con profundidad y parpadeo suave
+          const starLayers = [0, 1].map((layerIdx) => {
+            const starSp = [];
+            const count = layerIdx === 0 ? 450 : 220;
+            const radius = layerIdx === 0 ? 19 : 15;
+            for (let i = 0; i < count; i++) {
+              const v = new THREE.Vector3(rnd() - 0.5, rnd() - 0.5, rnd() - 0.5).normalize().multiplyScalar(radius);
+              starSp.push(v.x, v.y, v.z);
+            }
+            const sg = new THREE.BufferGeometry();
+            sg.setAttribute('position', new THREE.Float32BufferAttribute(starSp, 3));
+            const pts = new THREE.Points(
+              sg,
+              new THREE.PointsMaterial({
+                color: layerIdx === 0 ? 0xe2e8f0 : 0xbae6fd,
+                size: layerIdx === 0 ? 0.055 : 0.085,
+                transparent: true,
+                opacity: 0.85
+              })
+            );
+            scene.add(pts);
+            return pts;
+          });
+
+          const layout = () => {
+            if (!stage) return;
+            const w = stage.clientWidth, h = stage.clientHeight;
+            R.setSize(w, h);
+            cam.aspect = w / h;
+            cam.position.z = Math.max(4.3, 6.2 / cam.aspect);
+            cam.updateProjectionMatrix();
+          };
+          layout();
+          window.addEventListener('resize', layout);
+
+          const ray = new THREE.Raycaster(), mp = new THREE.Vector2();
+          let drag = null;
+
+          R.domElement.addEventListener('pointerdown', (e) => {
+            const r = R.domElement.getBoundingClientRect();
+            const w = e.clientX - r.left < r.width / 2 ? earth : bodies[globeTarget.value];
+            drag = { w, x: e.clientX, y: e.clientY, moved: 0 };
+            globeAutoRotate.value = false;
+            R.domElement.setPointerCapture(e.pointerId);
+          });
+
+          R.domElement.addEventListener('pointermove', (e) => {
+            const r = R.domElement.getBoundingClientRect();
+            mp.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+            ray.setFromCamera(mp, cam);
+            const activeMarkers = [...earth.markers, ...bodies[globeTarget.value].markers];
+            const hoverHit = ray.intersectObjects(activeMarkers)[0];
+            if (hoverHit) {
+              hoveredGlobeMarker.value = {
+                x: e.clientX,
+                y: e.clientY,
+                name: hoverHit.object.userData.name,
+                body: hoverHit.object.userData.bodyName
+              };
+            } else {
+              hoveredGlobeMarker.value = null;
+            }
+
+            if (!drag) return;
+            const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+            drag.moved += Math.abs(dx) + Math.abs(dy);
+            drag.x = e.clientX;
+            drag.y = e.clientY;
+            drag.w.tgt.s += dx * 0.0085;
+            drag.w.cur.s += dx * 0.0085;
+            drag.w.tgt.t = drag.w.cur.t = Math.max(-1.3, Math.min(1.3, drag.w.cur.t + dy * 0.0085));
+          });
+
+          R.domElement.addEventListener('pointerleave', () => {
+            hoveredGlobeMarker.value = null;
+          });
+
+          R.domElement.addEventListener('pointerup', (e) => {
+            if (drag && drag.moved < 6) {
+              const r = R.domElement.getBoundingClientRect();
+              mp.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+              ray.setFromCamera(mp, cam);
+              const hitEarth = ray.intersectObjects(earth.markers)[0];
+              if (hitEarth) {
+                selectBoliviaSite(hitEarth.object.userData.i);
+              } else {
+                const hitSpace = ray.intersectObjects(bodies[globeTarget.value].markers)[0];
+                if (hitSpace) {
+                  const refIdx = hitSpace.object.userData.i;
+                  const matchingIdx = boliviaSites.findIndex((s) => s.r[globeTarget.value] === refIdx);
+                  if (matchingIdx !== -1) selectBoliviaSite(matchingIdx);
+                }
+              }
+            }
+            drag = null;
+          });
+
+          threeCtx = { earth, bodies, ll2v, cloudsMesh };
+          updateDualGlobesSelection();
+
+          const wrap = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+          const animateGlobes = () => {
+            threeAnimId = requestAnimationFrame(animateGlobes);
+            const t = performance.now() / 1000;
+            cloudsMesh.visible = globeCloudsVisible.value;
+            cloudsMesh.rotation.y += 0.00065;
+
+            starLayers[0].rotation.y = t * 0.003;
+            starLayers[1].rotation.y = -t * 0.002;
+            starLayers[1].material.opacity = 0.6 + 0.3 * Math.sin(t * 1.4);
+
+            const pulse = (t % 1.6) / 1.6;
+            [earth, bodies.mars, bodies.moon].forEach((w) => {
+              w.ring.scale.setScalar(0.65 + pulse * 3.1);
+              w.ring.material.opacity = 0.92 * (1 - pulse);
+            });
+            [earth, bodies[globeTarget.value]].forEach((w) => {
+              if (globeAutoRotate.value && !drag) w.tgt.s += 0.0022;
+              w.cur.s += wrap(w.tgt.s - w.cur.s) * 0.08;
+              w.cur.t += (w.tgt.t - w.cur.t) * 0.08;
+              w.spin.rotation.y = w.cur.s;
+              w.pivot.rotation.x = w.cur.t;
+              const q = w.tgtScale || 1;
+              const c = w.scale.scale.x;
+              w.scale.scale.setScalar(c + (q - c) * 0.1);
+            });
+            R.render(scene, cam);
+          };
+          animateGlobes();
+        };
+
+        const setGlobeTarget = (target) => {
+          globeTarget.value = target;
+          globeAutoRotate.value = false;
+          updateDualGlobesSelection();
+          refreshBoliviaAtlasVisuals();
+        };
+
+        const toggleRealScale = () => {
+          globeRealScale.value = !globeRealScale.value;
+          updateDualGlobesSelection();
+        };
+
+        const setAtlasMission = (mKey) => {
+          atlasMission.value = mKey;
+          drawRadarSvg();
+        };
+
+        const selectBoliviaSite = (idx) => {
+          boliviaSiteIdx.value = idx;
+          const site = boliviaSites[idx];
+          if (site) {
+            selectedAnalogId.value = site.analogKey;
+            customLat.value = site.ll[0];
+            customLon.value = site.ll[1];
+            const analogObj = analogComparisons.find((a) => a.id === site.analogKey);
+            if (analogObj) {
+              fetchLiveEarthTelemetry(site.ll[0], site.ll[1], analogObj.fallbackTelemetry);
+            }
+            updateDualGlobesSelection();
+            refreshBoliviaAtlasVisuals();
+          }
+        };
+
+        const toggleTerrainClock = () => {
+          terrainPlaying.value = !terrainPlaying.value;
+          terrainLastTime = performance.now();
+        };
+
+        const onManualClockInput = () => {
+          terrainClockFrac = terrainClockRaw.value / 1000;
+          updateTerrainClockAndTempMarker();
+        };
+
+        const triggerGravityDrop = () => {
+          if (!terrainCtx) return;
+          const { ts } = terrainCtx;
+          if (!terrainCtx.balls) {
+            terrainCtx.balls = [-1.2, 1.2].map((x) => {
+              const b = new THREE.Mesh(
+                new THREE.SphereGeometry(0.055, 16, 12),
+                new THREE.MeshStandardMaterial({ color: 0xffe08a, emissive: 0x553300 })
+              );
+              b.position.x = x;
+              ts.add(b);
+              return b;
+            });
+          }
+          const gVals = [9.81, globeTarget.value === 'mars' ? 3.71 : 1.62];
+          const names = ['Tierra', globeTarget.value === 'mars' ? 'Marte' : 'Luna'];
+          gravityDropInfo.value =
+            gVals.map((v, i) => `${names[i]}: ${Math.sqrt(200 / v).toFixed(1)} s (${(v * Math.sqrt(200 / v)).toFixed(0)} m/s)`).join(' · ') +
+            ' (100 m sin arrastre)';
+          gravityDropStart = performance.now();
+        };
+
+        const updateTerrainClockAndTempMarker = () => {
+          const f = terrainClockFrac;
+          const u = (f - 0.25) * 2 * Math.PI;
+          const s = Math.sin(u);
+          const el = ((terrainSunEl.value * Math.PI) / 180) * s;
+          const day = Math.min(1, Math.max(0, s * 4));
+          const isMoon = globeTarget.value === 'moon';
+
+          if (terrainCtx) {
+            const { tl, tamb, ts, sunSp, skyN, skyD, skyM } = terrainCtx;
+            tl.position.set(-5 * Math.cos(el) * Math.cos(u), 5 * Math.sin(el), 2 * Math.cos(el));
+            tl.intensity = 1.4 * day;
+            ts.background.copy(skyN).lerp(isMoon ? skyN : globeTarget.value === 'mars' ? skyM : skyD, day);
+            ts.fog.color.copy(ts.background);
+            sunSp.position.set(tl.position.x * 0.45, tl.position.y * 0.4 + 0.1, -1.3);
+            sunSp.material.opacity = Math.min(1, day * 3);
+            tamb.intensity = isMoon ? 0.04 + 0.09 * day : 0.3 * (0.2 + 0.8 * day);
+          }
+
+          if (isMoon) {
+            terrainClockLabel.value = `día lunar ${Math.round(f * 100)} %`;
+          } else {
+            const m = Math.round(f * 1440) % 1440;
+            const hh = `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+            terrainClockLabel.value = `${hh} ${s > 0 ? '(día)' : '(noche)'}`;
+          }
+
+          if (tempCurveA && tempCurveB && tempScaleFn) {
+            const idx = f * 96;
+            const i0 = Math.min(95, Math.floor(idx));
+            const fr = idx - i0;
+            const a = tempCurveA[i0] * (1 - fr) + tempCurveA[i0 + 1] * fr;
+            const b = tempCurveB[i0] * (1 - fr) + tempCurveB[i0 + 1] * fr;
+            const vl = document.getElementById('tvl-vue');
+            const tca = document.getElementById('tca-vue');
+            const tcb = document.getElementById('tcb-vue');
+            if (vl && tca && tcb) {
+              vl.setAttribute('x1', tempScaleFn.X(idx));
+              vl.setAttribute('x2', tempScaleFn.X(idx));
+              tca.setAttribute('cx', tempScaleFn.X(idx));
+              tca.setAttribute('cy', tempScaleFn.Y(a));
+              tcb.setAttribute('cx', tempScaleFn.X(idx));
+              tcb.setAttribute('cy', tempScaleFn.Y(b));
+            }
+            terrainClockTempText.value = `Temperatura instantánea → Sitio Bolivia: ${Math.round(a)} °C · Referencia: ${Math.round(b)} °C`;
+          }
+        };
+
+        const initTerrainAndCharts = () => {
+          const container = terrainStageRef.value;
+          if (!container || typeof THREE === 'undefined') return;
+          if (terrainAnimId) cancelAnimationFrame(terrainAnimId);
+          container.querySelectorAll('canvas').forEach((c) => c.remove());
+
+          const hash = (x, y) => {
+            const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+            return h - Math.floor(h);
+          };
+          const vn = (x, y) => {
+            const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+            const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+            return (
+              hash(xi, yi) * (1 - u) * (1 - v) +
+              hash(xi + 1, yi) * u * (1 - v) +
+              hash(xi, yi + 1) * (1 - u) * v +
+              hash(xi + 1, yi + 1) * u * v
+            );
+          };
+          const fbm = (x, y) => {
+            let s = 0, a = 0.5;
+            for (let i = 0; i < 4; i++) {
+              s += a * vn(x, y);
+              x *= 2;
+              y *= 2;
+              a /= 2;
+            }
+            return s;
+          };
+
+          const T = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+          T.outputEncoding = THREE.sRGBEncoding;
+          T.toneMapping = THREE.ACESFilmicToneMapping;
+          T.toneMappingExposure = 1.15;
+          T.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+          T.shadowMap.enabled = true;
+          T.shadowMap.type = THREE.PCFSoftShadowMap;
+          container.appendChild(T.domElement);
+
+          const ts = new THREE.Scene();
+          const tc = new THREE.PerspectiveCamera(40, 1, 0.1, 50);
+          const tamb = new THREE.AmbientLight(0xffffff, 0.35);
+          ts.add(tamb);
+          const tl = new THREE.DirectionalLight(0xffffff, 1.4);
+          tl.castShadow = true;
+          tl.shadow.mapSize.set(1024, 1024);
+          tl.shadow.bias = -0.0005;
+          tl.shadow.camera.left = -3;
+          tl.shadow.camera.right = 3;
+          tl.shadow.camera.top = 3;
+          tl.shadow.camera.bottom = -3;
+          ts.add(tl);
+
+          const gA = new THREE.Group(), gB = new THREE.Group();
+          gA.position.x = -1.2;
+          gB.position.x = 1.2;
+          ts.add(gA, gB);
+
+          const skyN = new THREE.Color(0x04060b), skyD = new THREE.Color(0x24344d), skyM = new THREE.Color(0x3a2a24);
+          ts.background = new THREE.Color(0x04060b);
+          ts.fog = new THREE.Fog(0x04060b, 6, 16);
+
+          const sunSp = (() => {
+            const c = document.createElement('canvas');
+            c.width = c.height = 128;
+            const g = c.getContext('2d'), r = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+            r.addColorStop(0, 'rgba(255,250,225,1)');
+            r.addColorStop(0.18, 'rgba(255,230,160,.9)');
+            r.addColorStop(1, 'rgba(255,200,100,0)');
+            g.fillStyle = r;
+            g.fillRect(0, 0, 128, 128);
+            const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false, fog: false }));
+            s.scale.setScalar(0.9);
+            ts.add(s);
+            return s;
+          })();
+
+          let tdrag = null;
+          T.domElement.addEventListener('pointerdown', (e) => {
+            tdrag = e.clientX;
+            T.domElement.setPointerCapture(e.pointerId);
+          });
+          T.domElement.addEventListener('pointermove', (e) => {
+            if (tdrag === null) return;
+            gA.rotation.y += (e.clientX - tdrag) * 0.01;
+            gB.rotation.y = gA.rotation.y;
+            tdrag = e.clientX;
+          });
+          T.domElement.addEventListener('pointerup', () => (tdrag = null));
+
+          const tlay = () => {
+            if (!container) return;
+            const w = container.clientWidth, h = container.clientHeight;
+            T.setSize(w, h);
+            tc.aspect = w / h;
+            tc.position.set(0, 2.3, Math.max(4.6, 6.4 / tc.aspect));
+            tc.lookAt(0, 0, 0);
+            tc.updateProjectionMatrix();
+          };
+          tlay();
+          window.addEventListener('resize', tlay);
+
+          terrainCtx = { T, ts, tc, tamb, tl, gA, gB, sunSp, skyN, skyD, skyM, fbm, hash, balls: null };
+          refreshBoliviaAtlasVisuals();
+
+          const tLoop = () => {
+            terrainAnimId = requestAnimationFrame(tLoop);
+            if (tdrag === null) {
+              gA.rotation.y += 0.003;
+              gB.rotation.y = gA.rotation.y;
+            }
+            if (terrainPlaying.value) {
+              const now = performance.now();
+              terrainClockFrac = (terrainClockFrac + (now - terrainLastTime) / 1000 / terrainDaySpeed.value) % 1;
+              terrainLastTime = now;
+              terrainClockRaw.value = Math.round(terrainClockFrac * 1000);
+              updateTerrainClockAndTempMarker();
+            }
+            if (gravityDropStart && terrainCtx.balls) {
+              const t = (performance.now() - gravityDropStart) / 1000;
+              const gVals = [9.81, globeTarget.value === 'mars' ? 3.71 : 1.62];
+              let tm = 0;
+              terrainCtx.balls.forEach((b, k) => {
+                const tf = Math.sqrt(200 / gVals[k]);
+                const tt = Math.min(t, tf);
+                tm = Math.max(tm, tf);
+                b.position.y = 1.1 - 0.9 * ((0.5 * gVals[k] * tt * tt) / 100);
+                b.visible = true;
+              });
+              if (t > tm + 1.5) {
+                gravityDropStart = 0;
+                terrainCtx.balls.forEach((b) => (b.visible = false));
+              }
+            }
+            T.render(ts, tc);
+          };
+          tLoop();
+        };
+
+        const rebuildTerrainPatches = () => {
+          if (!terrainCtx) return;
+          const { gA, gB, fbm, hash } = terrainCtx;
+          [gA, gB].forEach((g) => {
+            while (g.children.length) {
+              const c = g.children[0];
+              g.remove(c);
+              c.geometry.dispose();
+              c.material.dispose();
+            }
+          });
+
+          const buildPatchMesh = (cfg, seed) => {
+            const N = 72;
+            const geo = new THREE.PlaneGeometry(2, 2, N, N);
+            geo.rotateX(-Math.PI / 2);
+            const pos = geo.attributes.position;
+            const H = [];
+            let s = seed;
+            const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+            const cr = [];
+            for (let i = 0; i < (cfg.craters || 0); i++) cr.push([r() * 1.6 - 0.8, r() * 1.6 - 0.8, 0.14 + r() * 0.22]);
+
+            let mn = 1e9, mx = -1e9;
+            const scaleVex = 0.28 + (terrainVex.value - 1) * 0.14;
+            for (let i = 0; i < pos.count; i++) {
+              const x = pos.getX(i), z = pos.getZ(i);
+              const n = fbm(x * cfg.freq + seed, z * cfg.freq + seed);
+              let h = (cfg.ridged ? 1 - Math.abs(2 * n - 1) : n - 0.47) * cfg.amp * scaleVex * 2;
+              cr.forEach((c) => {
+                const t = Math.hypot(x - c[0], z - c[1]) / c[2];
+                if (t < 1) h -= 0.45 * c[2] * (1 - t * t);
+                else if (t < 1.3) h += 0.1 * c[2] * ((1.3 - t) / 0.3) * 0.5;
+              });
+              H.push(h);
+              mn = Math.min(mn, h);
+              mx = Math.max(mx, h);
+            }
+
+            const col = new Float32Array(pos.count * 3);
+            const P = cfg.pal;
+            for (let i = 0; i < pos.count; i++) {
+              pos.setY(i, H[i]);
+              const t = (H[i] - mn) / (mx - mn || 1);
+              const j = 0.92 + 0.16 * hash(i % 97, Math.floor(i / 97));
+              for (let k = 0; k < 3; k++) {
+                col[i * 3 + k] = Math.min(1, (P[0][k] + (P[1][k] - P[0][k]) * t) * j);
+              }
+            }
+            geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+            geo.computeVertexNormals();
+            const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.92 }));
+            m.castShadow = m.receiveShadow = true;
+            return m;
+          };
+
+          const cfgA = boliviaDemStats[currentBoliviaSite.value.id] || boliviaDemStats.uyuni;
+          const cfgB = boliviaDemStats[currentBoliviaRef.value[3]] || {
+            amp: 0.35, freq: 3, ridged: false, craters: 6, pal: [[0.33, 0.33, 0.35], [0.76, 0.76, 0.79]]
+          };
+          gA.add(buildPatchMesh(cfgA, 3 + boliviaSiteIdx.value));
+          gB.add(buildPatchMesh(cfgB, 17));
+        };
+
+        const drawTempSvg = () => {
+          const el = tempChartSvgRef.value;
+          if (!el) return;
+          const ia = currentBoliviaSite.value.id;
+          const ib = currentBoliviaRef.value[3];
+          const isMoon = globeTarget.value === 'moon';
+          const accColor = isMoon ? '#94a3b8' : '#fc3d21';
+
+          const synthCurve = (id, moonMode) => {
+            const [h, l] = boliviaTempExtremes[id];
+            return Array.from({ length: 97 }, (_, i) => {
+              const p = (i / 96) * 2 * Math.PI;
+              return moonMode
+                ? l + (h - l) * Math.pow(Math.max(0, Math.cos(p - Math.PI)), 0.25)
+                : l + (h - l) * (0.5 + 0.5 * Math.cos(p - 1.167 * Math.PI));
+            });
+          };
+
+          const A = boliviaHourlyProfiles[ia]
+            ? Array.from({ length: 97 }, (_, i) => {
+                const a = Math.floor(i / 4), f = i / 4 - a, p = boliviaHourlyProfiles[ia].perfil;
+                return p[a] * (1 - f) + p[Math.min(a + 1, 24)] * f;
+              })
+            : synthCurve(ia, false);
+          const B = synthCurve(ib, isMoon);
+          const all = A.concat(B);
+          const mn = Math.min(...all), mx = Math.max(...all);
+          const st = mx - mn > 200 ? 50 : mx - mn > 100 ? 25 : 10;
+          const y0 = Math.floor((mn - 5) / st) * st;
+          const y1 = Math.ceil((mx + 5) / st) * st;
+
+          const X = (i) => 44 + (i / 96) * 360;
+          const Y = (t) => 210 - ((t - y0) / (y1 - y0)) * 190;
+          let svg = '<svg viewBox="0 0 420 245" class="w-full h-auto block">';
+          for (let t = y0; t <= y1; t += st) {
+            svg += `<line x1="44" x2="404" y1="${Y(t)}" y2="${Y(t)}" stroke="#1e293b"/><text fill="#94a3b8" font-size="10" font-family="monospace" x="38" y="${Y(t)}" text-anchor="end" dominant-baseline="middle">${t}</text>`;
+          }
+          ['Medianoche', 'Amanecer', 'Mediodía', 'Atardecer', 'Medianoche'].forEach((l, k) => {
+            svg += `<text fill="#94a3b8" font-size="10" font-family="monospace" x="${X(k * 24)}" y="232" text-anchor="${k === 0 ? 'start' : k === 4 ? 'end' : 'middle'}">${l}</text>`;
+          });
+          const polyLine = (arr, col) => {
+            const pts = arr.map((t, i) => `${X(i)},${Y(t)}`).join(' ');
+            return `<polygon fill="${col}" fill-opacity="0.12" points="${X(0)},210 ${pts} ${X(96)},210"/><polyline fill="none" stroke="${col}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${pts}"/>`;
+          };
+          svg += polyLine(A, '#38bdf8') + polyLine(B, accColor) + '<text fill="#94a3b8" font-size="10" font-family="monospace" x="48" y="12">°C</text>';
+          svg += `<line id="tvl-vue" y1="20" y2="210" stroke="#ffffff" stroke-dasharray="3 3"/><circle id="tca-vue" r="4.5" fill="#38bdf8"/><circle id="tcb-vue" r="4.5" fill="${accColor}"/></svg>`;
+          el.innerHTML = svg;
+
+          tempCurveA = A;
+          tempCurveB = B;
+          tempScaleFn = { X, Y };
+          updateTerrainClockAndTempMarker();
+
+          const amp = (a) => Math.round(Math.max(...a) - Math.min(...a));
+          const rng = (a) => `${Math.round(Math.min(...a))} a ${Math.round(Math.max(...a))} °C`;
+          tempChartSummaryHtml.value = `<strong class="text-[#38bdf8]">Azul (Bolivia):</strong> ${currentBoliviaSite.value.n}, de ${rng(A)} (amplitud ${amp(A)} °C, datos NASA POWER). <strong style="color:${accColor}">${isMoon ? 'Gris (Luna)' : 'Rojo (Marte)'}:</strong> ${currentBoliviaRef.value[0]}, de ${rng(B)} (amplitud ${amp(B)} °C). Diferencia de amplitud térmica: ${Math.abs(amp(A) - amp(B))} °C.`;
+        };
+
+        const drawRadarSvg = () => {
+          const el = radarSvgRef.value;
+          if (!el) return;
+          const v = getSiteDimArray(currentBoliviaSite.value);
+          const accColor = globeTarget.value === 'mars' ? '#fc3d21' : '#94a3b8';
+          const cx = 160, cy = 150, Rr = 95, n = boliviaDims.length;
+          const pt = (i, r) => {
+            const a = -Math.PI / 2 + (2 * Math.PI * i) / n;
+            return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+          };
+          let svg = '<svg viewBox="0 0 320 300" class="w-full h-auto block">';
+          [2, 4, 6, 8, 10].forEach((k) => {
+            svg += `<polygon points="${boliviaDims.map((_, i) => pt(i, (Rr * k) / 10).join(',')).join(' ')}" fill="none" stroke="#1e293b"/>`;
+          });
+          boliviaDims.forEach((d, i) => {
+            const [x, y] = pt(i, Rr), [lx, ly] = pt(i, Rr + 18);
+            svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#1e293b"/><text fill="#cbd5e1" font-size="10" font-family="monospace" x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle">${d}</text>`;
+          });
+          svg += `<polygon points="${v.map((s, i) => pt(i, (Rr * s) / 10).join(',')).join(' ')}" fill="${accColor}" fill-opacity="0.32" stroke="${accColor}" stroke-width="2.2"/>`;
+          v.forEach((s, i) => {
+            const [x, y] = pt(i, (Rr * s) / 10);
+            svg += `<circle cx="${x}" cy="${y}" r="3.5" fill="${accColor}"/>`;
+          });
+          svg += '</svg>';
+          el.innerHTML = svg;
+        };
+
+        const refreshBoliviaAtlasVisuals = () => {
+          rebuildTerrainPatches();
+          drawTempSvg();
+          drawRadarSvg();
+        };
+
+        const setTab = async (tabId) => {
+          activeTab.value = tabId;
+          selectedLayerIndex.value = 0;
+          if (['earth', 'moon', 'mars'].includes(tabId)) {
+            await nextTick();
+            loadSphereTexture();
+          } else if (tabId === 'analogs') {
+            await nextTick();
+            initDualGlobesScene();
+            initTerrainAndCharts();
+            fetchLiveEarthTelemetry(currentBoliviaSite.value.ll[0], currentBoliviaSite.value.ll[1], activeAnalog.value.fallbackTelemetry);
+          }
+        };
+
+        const exportJsonDataset = () => {
+          const payload = {
+            platform: 'TerraTwin SpaceScope • Vue 3 Planetary Textures & Bolivia 3D Analog Atlas',
+            textures: {
+              earth: planetaryBodies.earth.url8k,
+              moon: planetaryBodies.moon.url8k,
+              mars: planetaryBodies.mars.url8k
+            },
+            boliviaSites,
+            liveTelemetry: { ...liveTelemetry, isapScore: liveIsapScore.value },
+            exportedAt: new Date().toISOString()
+          };
+          const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'TerraTwin_Bolivia_3D_Atlas.json';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        };
+
+        onMounted(() => {
+          sphereTimer = setInterval(() => {
+            if (isPlanetTab.value && autoSpin.value && !sphereDragging) {
+              sphereRotY = (sphereRotY + 0.015) % (Math.PI * 2);
+              drawIndividualSphere();
+            }
+          }, 30);
+        });
+
+        return {
+          activeTab,
+          selectedLayerIndex,
+          bodiesList,
+          isPlanetTab,
+          currentBody,
+          sphereCanvas,
+          sunAngle,
+          autoSpin,
+          sphereStatusText,
+          onSpherePointerDown,
+          onSpherePointerMove,
+          onSpherePointerUp,
+          dualGlobeStage,
+          globeTarget,
+          globeRealScale,
+          globeAutoRotate,
+          globeCloudsVisible,
+          hoveredGlobeMarker,
+          simMaxSlope,
+          simMinPorosity,
+          simMinUv,
+          missionEngineeringEval,
+          quizQuestions,
+          currentQuizIdx,
+          quizSelectedOption,
+          quizScore,
+          currentQuizQuestion,
+          boliviaSites,
+          boliviaSiteIdx,
+          boliviaMissions,
+          atlasMission,
+          boliviaGaps,
+          boliviaRanking,
+          currentBoliviaSite,
+          currentBoliviaRef,
+          terrainStageRef,
+          tempChartSvgRef,
+          radarSvgRef,
+          terrainVex,
+          terrainSunEl,
+          terrainClockRaw,
+          terrainClockLabel,
+          terrainClockTempText,
+          terrainPlaying,
+          terrainDaySpeed,
+          gravityDropInfo,
+          terrainStatsTable,
+          tempChartSummaryHtml,
+          activeAnalog,
+          comparisonSlider,
+          imageCompareView,
+          customLat,
+          customLon,
+          liveTelemetry,
+          liveIsapScore,
+          setTab,
+          jumpToComparisonTarget,
+          refocusDualGlobes,
+          answerQuiz,
+          nextQuizQuestion,
+          resetQuiz,
+          setGlobeTarget,
+          toggleRealScale,
+          setAtlasMission,
+          selectBoliviaSite,
+          toggleTerrainClock,
+          onManualClockInput,
+          triggerGravityDrop,
+          rebuildTerrainPatches,
+          runCustomCoordinateScan,
+          handleImageFallback,
+          exportJsonDataset
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
